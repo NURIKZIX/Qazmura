@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import useAuth from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 import { auth, db } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { Loader2, LogOut, Edit3, Trophy, Flame, BookOpen, Star, Mail, Phone, MapPin } from "lucide-react";
+import { Toaster, toast } from "sonner";
+import { signOut } from "firebase/auth";
 
 interface UserData {
-  name: string;
+  fullName: string;
   email: string;
-  avatar: string;
+  phone: string;
+  city: string;
   xp: number;
   streak: number;
   lessonsCompleted: number;
@@ -19,168 +22,96 @@ interface UserData {
 }
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserData | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-
+    const fetchProfile = async () => {
       try {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-
+        const user = auth.currentUser;
+        if (!user) {
+          router.push("/"); // Кірмеген болса басты бетке жібереді
+          return;
+        }
+        const docSnap = await getDoc(doc(db, "users", user.uid));
         if (docSnap.exists()) {
           setProfile(docSnap.data() as UserData);
         }
       } catch (error) {
-        console.error(error);
+        toast.error("Деректерді жүктеу қатесі");
       } finally {
-        setLoadingProfile(false);
+        setLoading(false);
       }
     };
-
-    loadProfile();
-  }, [user]);
-
-  if (loading || loadingProfile) {
-    return (
-      <div className="flex justify-center items-center h-screen text-2xl">
-        Жүктелуде...
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="bg-white p-8 rounded-2xl shadow-xl">
-          <h1 className="text-2xl font-bold mb-4">
-            Сіз жүйеге кірмегенсіз
-          </h1>
-
-          <button
-            onClick={() => router.push("/login")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-xl"
-          >
-            Кіру
-          </button>
-        </div>
-      </div>
-    );
-  }
+    fetchProfile();
+  }, [router]);
 
   const handleLogout = async () => {
     await signOut(auth);
-    router.push("/");
+    router.push("/"); // Шыққаннан кейін басты бетке жібереді
   };
 
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center text-[#002B49]">
+      <Loader2 className="animate-spin w-10 h-10" />
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-slate-100 py-10">
-      <div className="max-w-5xl mx-auto">
-
-        <div className="bg-white rounded-3xl shadow-xl p-8">
-
-          {/* HEADER */}
-          <div className="flex items-center gap-6">
-
-            <div className="w-28 h-28 rounded-full bg-blue-600 text-white flex items-center justify-center text-5xl font-bold">
-              {profile?.name?.charAt(0)?.toUpperCase() ||
-                user.email?.charAt(0)?.toUpperCase()}
-            </div>
-
-            <div>
-              <h1 className="text-4xl font-bold text-blue-900">
-                {profile?.name || "Пайдаланушы"}
-              </h1>
-
-              <p className="text-gray-600 text-lg">
-                {profile?.email}
-              </p>
-
-              <p className="text-blue-600 font-semibold mt-2">
-                Level {profile?.level}
-              </p>
-            </div>
-
+    <div className="min-h-screen bg-[#F8FAFC] py-10 px-4">
+      <Toaster richColors />
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="max-w-4xl mx-auto space-y-6"
+      >
+        {/* HEADER */}
+        <div className="bg-white p-8 rounded-3xl shadow-lg border-l-8 border-[#D4AF37] flex items-center gap-6">
+          <div className="w-28 h-28 rounded-full bg-[#002B49] text-white flex items-center justify-center text-5xl font-bold shadow-xl">
+            {profile?.fullName?.charAt(0)?.toUpperCase()}
           </div>
-
-          {/* STATS */}
-          <div className="grid md:grid-cols-4 gap-5 mt-10">
-
-            <div className="bg-slate-50 p-5 rounded-2xl">
-              <h3 className="font-bold text-lg">
-                📚 Сабақтар
-              </h3>
-
-              <p className="text-4xl font-bold mt-2">
-                {profile?.lessonsCompleted ?? 0}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-5 rounded-2xl">
-              <h3 className="font-bold text-lg">
-                ⭐ XP
-              </h3>
-
-              <p className="text-4xl font-bold mt-2">
-                {profile?.xp ?? 0}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-5 rounded-2xl">
-              <h3 className="font-bold text-lg">
-                🔥 Серия
-              </h3>
-
-              <p className="text-4xl font-bold mt-2">
-                {profile?.streak ?? 0}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-5 rounded-2xl">
-              <h3 className="font-bold text-lg">
-                🏆 Деңгей
-              </h3>
-
-              <p className="text-4xl font-bold mt-2">
-                {profile?.level ?? 1}
-              </p>
-            </div>
-
+          <div>
+            <h1 className="text-4xl font-bold text-[#002B49]">{profile?.fullName || "Пайдаланушы"}</h1>
+            <p className="text-gray-600 flex items-center gap-2"><Mail size={16} /> {profile?.email}</p>
+            <p className="text-[#D4AF37] font-bold text-lg mt-2">Level {profile?.level || 1}</p>
           </div>
-
-          {/* ROLE */}
-          <div className="mt-8">
-            <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-xl">
-              {profile?.role}
-            </span>
-          </div>
-
-          {/* BUTTONS */}
-          <div className="mt-10 flex gap-4">
-
-            <button
-  onClick={() => router.push("/profile/edit")}
-  className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700"
->
-  Профильді өңдеу
-</button>
-
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600"
-            >
-              Шығу
-            </button>
-
-          </div>
-
         </div>
 
-      </div>
+        {/* STATISTICS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Сабақтар", value: profile?.lessonsCompleted || 0, icon: <BookOpen /> },
+            { label: "XP", value: profile?.xp || 0, icon: <Star /> },
+            { label: "Серия", value: profile?.streak || 0, icon: <Flame /> },
+            { label: "Деңгей", value: profile?.level || 1, icon: <Trophy /> },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl shadow-sm text-center border">
+              <div className="text-[#D4AF37] flex justify-center mb-2">{stat.icon}</div>
+              <div className="text-3xl font-bold text-[#002B49]">{stat.value}</div>
+              <div className="text-sm text-gray-500">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* DETAILS */}
+        <div className="bg-white p-8 rounded-3xl shadow-sm border space-y-4">
+          <h2 className="text-xl font-bold text-[#002B49] mb-4">Жеке мәліметтер</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <p className="flex items-center gap-2"><Phone className="text-[#D4AF37]" /> {profile?.phone || "Телефон көрсетілмеген"}</p>
+            <p className="flex items-center gap-2"><MapPin className="text-[#D4AF37]" /> {profile?.city || "Қала көрсетілмеген"}</p>
+          </div>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex gap-4">
+          <button onClick={() => router.push("/profile/edit")} className="bg-[#002B49] text-white px-8 py-3 rounded-xl hover:bg-[#001f35] flex items-center gap-2">
+            <Edit3 size={18} /> Профильді өңдеу
+          </button>
+          <button onClick={handleLogout} className="bg-red-50 text-red-600 px-8 py-3 rounded-xl hover:bg-red-100 flex items-center gap-2">
+            <LogOut size={18} /> Шығу
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 }
