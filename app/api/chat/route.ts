@@ -1,3 +1,4 @@
+// src/app/api/chat/route.ts
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
@@ -6,12 +7,11 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     let incomingMessages = body.messages || [];
-    
+
     if (body.message && incomingMessages.length === 0) {
       incomingMessages = [{ role: "user", content: body.message }];
     }
 
-    // QAZMURA платформасының жүйелік нұсқаулығы
     const systemInstruction = {
       role: "system",
       content: `Сен QAZMURA платформасының AI қазақ тілі мұғалімі және кәсіби ертегішісісің.
@@ -25,26 +25,29 @@ export async function POST(req: Request) {
     };
 
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-    "HTTP-Referer": "https://qazmura.vercel.app", // сайтыңның домені
-    "X-Title": "QAZMURA",                 // жоба атауы
-  },
-  body: JSON.stringify({
-    model: "google/gemini-2.5-flash-lite", // OpenRouter-дегі модель атауы
-    messages: [systemInstruction, ...incomingMessages],
-    temperature: 0.7,
-    max_tokens: 1500,
-    stream: true,
-  }),
-});
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "https://qazmura.vercel.app",
+        "X-Title": "QAZMURA",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [systemInstruction, ...incomingMessages],
+        temperature: 0.7,
+        max_tokens: 1500,
+        stream: true,
+      }),
+    });
 
     if (!res.ok) {
       const errorData = await res.text();
-      console.error("Groq API Error:", errorData);
-      return NextResponse.json({ error: "Groq API-ден қате келді" }, { status: res.status });
+      console.error("OpenRouter API Error:", errorData);
+      return NextResponse.json(
+        { error: "OpenRouter API-ден қате келді" },
+        { status: res.status }
+      );
     }
 
     return new NextResponse(res.body, {
@@ -54,9 +57,11 @@ export async function POST(req: Request) {
         "Connection": "keep-alive",
       },
     });
-
   } catch (error) {
     console.error("Server Error:", error);
-    return NextResponse.json({ error: "Ішкі серверлік қате" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Ішкі серверлік қате" },
+      { status: 500 }
+    );
   }
 }
