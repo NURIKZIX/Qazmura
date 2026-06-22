@@ -712,6 +712,7 @@ export default function LearnPage() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { overflow-x: hidden; max-width: 100vw; }
 
         @keyframes goldPulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(245,200,66,0.3); }
@@ -927,6 +928,39 @@ export default function LearnPage() {
           background: linear-gradient(to bottom, rgba(245,200,66,0.4), rgba(255,255,255,0.06));
         }
         .path-node:last-child::after { display: none; }
+
+        /* ══════════ Responsive helpers ══════════ */
+        .learn-hero-grid {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 3rem;
+          align-items: start;
+        }
+        .learn-hero-progress-card {
+          min-width: 260px;
+        }
+        @media (max-width: 860px) {
+          .learn-hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+          .learn-hero-progress-card { min-width: 0; width: 100%; max-width: 320px; margin: 0 auto; }
+        }
+
+        .two-col-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2.5rem;
+        }
+        @media (max-width: 820px) {
+          .two-col-grid { grid-template-columns: 1fr; gap: 2rem; }
+        }
+
+        .septik-panel-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+        }
+        @media (max-width: 760px) {
+          .septik-panel-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+        }
       `}</style>
 
       <div
@@ -944,7 +978,7 @@ export default function LearnPage() {
           style={{
             position: "relative",
             overflow: "hidden",
-            padding: "4rem 2rem 3rem",
+            padding: "4rem 1.25rem 3rem",
             background: "linear-gradient(135deg, #0A0F1E 0%, #0f1a38 50%, #0A0F1E 100%)",
           }}
         >
@@ -987,7 +1021,7 @@ export default function LearnPage() {
               <span style={{ color: "#F5C842" }}>Оқу бөлімі</span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "start" }}>
+            <div className="learn-hero-grid">
               <div>
                 <div
                   style={{
@@ -1055,8 +1089,8 @@ export default function LearnPage() {
               {/* Progress overview card */}
               <Reveal>
                 <div
-                  className="learn-glass"
-                  style={{ padding: "1.75rem", minWidth: 260, textAlign: "center" }}
+                  className="learn-glass learn-hero-progress-card"
+                  style={{ padding: "1.75rem", textAlign: "center" }}
                 >
                   <div style={{ position: "relative", display: "inline-flex", marginBottom: "1rem" }}>
                     <ProgressRing pct={totalProgress} size={96} stroke={7} color="#F5C842" />
@@ -1096,7 +1130,7 @@ export default function LearnPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
                 gap: "1rem",
                 marginTop: "2.5rem",
               }}
@@ -1133,16 +1167,16 @@ export default function LearnPage() {
         {/* ══════════════════════════════════════
             DAILY STREAK
         ══════════════════════════════════════ */}
-        <section style={{ padding: "2.5rem 2rem 0" }}>
+        <section style={{ padding: "2.5rem 1.25rem 0" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div
                 className="learn-glass"
                 style={{
-                  padding: "1.5rem 2rem",
+                  padding: "1.5rem",
                   display: "flex",
                   alignItems: "center",
-                  gap: "2rem",
+                  gap: "1.5rem",
                   flexWrap: "wrap",
                   borderColor: "rgba(245,200,66,0.2)",
                 }}
@@ -1187,7 +1221,7 @@ export default function LearnPage() {
         {/* ══════════════════════════════════════
             MODULES GRID
         ══════════════════════════════════════ */}
-        <section style={{ padding: "4rem 2rem" }}>
+        <section style={{ padding: "4rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
@@ -1213,7 +1247,7 @@ export default function LearnPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
                 gap: "1.25rem",
               }}
             >
@@ -1336,7 +1370,7 @@ export default function LearnPage() {
         ══════════════════════════════════════ */}
         <section
           style={{
-            padding: "5rem 2rem",
+            padding: "5rem 1.25rem",
             background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%)",
             borderTop: "1px solid rgba(255,255,255,0.05)",
             borderBottom: "1px solid rgba(255,255,255,0.05)",
@@ -1371,7 +1405,7 @@ export default function LearnPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
                 gap: "1.25rem",
               }}
             >
@@ -1410,7 +1444,7 @@ export default function LearnPage() {
         {/* ══════════════════════════════════════
             ALPHABET SHOWCASE
         ══════════════════════════════════════ */}
-        <section style={{ padding: "5rem 2rem" }}>
+        <section style={{ padding: "5rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1.25rem" }}>
@@ -1457,8 +1491,8 @@ export default function LearnPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))",
-                gap: "0.6rem",
+                gridTemplateColumns: "repeat(auto-fill, minmax(60px, 1fr))",
+                gap: "0.5rem",
               }}
             >
               {filteredAlpha.map((item, i) => (
@@ -1483,7 +1517,7 @@ export default function LearnPage() {
         ══════════════════════════════════════ */}
         <section
           style={{
-            padding: "5rem 2rem",
+            padding: "5rem 1.25rem",
             background: "rgba(255,255,255,0.02)",
             borderTop: "1px solid rgba(255,255,255,0.05)",
           }}
@@ -1537,14 +1571,12 @@ export default function LearnPage() {
             {/* Active septik panel */}
             <Reveal delay={150}>
               <div
+                className="septik-panel-grid"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: `1.5px solid ${SEPTIK_CASES[activeSeptik].color}35`,
                   borderRadius: "1.5rem",
                   padding: "2rem",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "2rem",
                   animation: "fadeScale 0.3s ease",
                 }}
               >
@@ -1643,7 +1675,7 @@ export default function LearnPage() {
         {/* ══════════════════════════════════════
             VOCABULARY SECTION
         ══════════════════════════════════════ */}
-        <section style={{ padding: "5rem 2rem" }}>
+        <section style={{ padding: "5rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1.25rem" }}>
@@ -1713,7 +1745,7 @@ export default function LearnPage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
                   gap: "0.75rem",
                   marginBottom: "1.75rem",
                 }}
@@ -1739,7 +1771,7 @@ export default function LearnPage() {
         ══════════════════════════════════════ */}
         <section
           style={{
-            padding: "5rem 2rem",
+            padding: "5rem 1.25rem",
             background: "rgba(255,255,255,0.02)",
             borderTop: "1px solid rgba(255,255,255,0.05)",
           }}
@@ -1786,7 +1818,7 @@ export default function LearnPage() {
                     >
                       {i + 1}
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 800, fontSize: "0.98rem", color: "#fff", marginBottom: "0.2rem" }}>
                         {phrase.kz}
                       </div>
@@ -1802,6 +1834,7 @@ export default function LearnPage() {
                         borderRadius: 999, padding: "0.2rem 0.65rem",
                         color: "rgba(255,255,255,0.4)",
                         whiteSpace: "nowrap", flexShrink: 0,
+                        alignSelf: "center",
                       }}
                     >
                       {phrase.usage}
@@ -1816,16 +1849,9 @@ export default function LearnPage() {
         {/* ══════════════════════════════════════
             MINI QUIZ
         ══════════════════════════════════════ */}
-        <section style={{ padding: "5rem 2rem" }}>
+        <section style={{ padding: "5rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "2.5rem",
-                alignItems: "center",
-              }}
-            >
+            <div className="two-col-grid" style={{ alignItems: "center" }}>
               <Reveal>
                 <div>
                   <div
@@ -1902,7 +1928,7 @@ export default function LearnPage() {
         ══════════════════════════════════════ */}
         <section
           style={{
-            padding: "5rem 2rem",
+            padding: "5rem 1.25rem",
             background: "rgba(255,255,255,0.02)",
             borderTop: "1px solid rgba(255,255,255,0.05)",
           }}
@@ -1982,8 +2008,8 @@ export default function LearnPage() {
                       >
                         {step.done ? "✓" : step.level}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.25rem" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.25rem", flexWrap: "wrap" }}>
                           <span
                             style={{
                               fontWeight: 800, fontSize: "0.95rem",
@@ -2008,7 +2034,7 @@ export default function LearnPage() {
                         </div>
                         <div style={{ fontSize: "0.78rem", opacity: 0.45 }}>{step.desc}</div>
                       </div>
-                      <span style={{ fontSize: "0.72rem", opacity: 0.3, fontWeight: 700, letterSpacing: "0.08em" }}>
+                      <span style={{ fontSize: "0.72rem", opacity: 0.3, fontWeight: 700, letterSpacing: "0.08em", flexShrink: 0 }}>
                         {step.level}
                       </span>
                     </div>
@@ -2022,7 +2048,7 @@ export default function LearnPage() {
         {/* ══════════════════════════════════════
             CTA BOTTOM
         ══════════════════════════════════════ */}
-        <section style={{ padding: "5rem 2rem" }}>
+        <section style={{ padding: "5rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div
@@ -2030,7 +2056,7 @@ export default function LearnPage() {
                   background: "linear-gradient(135deg, rgba(245,200,66,0.08) 0%, rgba(96,165,250,0.05) 50%, rgba(245,200,66,0.08) 100%)",
                   border: "1px solid rgba(245,200,66,0.2)",
                   borderRadius: "2rem",
-                  padding: "4rem 3rem",
+                  padding: "3rem 1.5rem",
                   textAlign: "center",
                   position: "relative",
                   overflow: "hidden",

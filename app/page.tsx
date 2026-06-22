@@ -141,6 +141,7 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 export default function Home() {
   const { user, loading } = useAuth();
   const isLoggedIn = !loading && !!user;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <>
@@ -149,7 +150,7 @@ export default function Home() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; }
+        html, body { font-family: 'Inter', sans-serif; overflow-x: hidden; max-width: 100vw; }
 
         @keyframes starPulse {
           0%, 100% { opacity: 0; transform: scale(1); }
@@ -189,6 +190,10 @@ export default function Home() {
           20%  { opacity: 1; }
           80%  { opacity: 0.7; }
           100% { transform: translateY(100vh); opacity: 0; }
+        }
+        @keyframes menuSlide {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
 
         .btn-primary {
@@ -314,21 +319,110 @@ export default function Home() {
           background: linear-gradient(135deg, #F5C842, #E8A000);
           color: #0D1B4B;
         }
+
+        /* ══════════ NAV — responsive ══════════ */
+        .site-nav {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 1rem 2.5rem;
+          background: rgba(13,27,75,0.75);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+          gap: 1rem;
+        }
+        .nav-links {
+          display: flex; gap: 2rem; font-size: 0.9rem; opacity: 0.8;
+        }
+        .nav-burger {
+          display: none;
+          width: 38px; height: 38px;
+          border-radius: 0.6rem;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.06);
+          color: #fff;
+          font-size: 1.1rem;
+          align-items: center; justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .nav-mobile-menu {
+          position: fixed;
+          top: 64px; left: 0; right: 0; z-index: 99;
+          background: rgba(13,27,75,0.97);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+          display: flex; flex-direction: column;
+          padding: 1rem 1.5rem 1.5rem;
+          gap: 0.25rem;
+          animation: menuSlide 0.2s ease;
+        }
+        .nav-mobile-menu a {
+          color: #fff; text-decoration: none;
+          padding: 0.85rem 0.5rem;
+          font-size: 0.98rem;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .nav-auth-area { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .nav-user-pill {
+          display: flex; align-items: center; gap: 0.5rem;
+          background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+          border-radius: 999px; padding: 0.4rem 1rem 0.4rem 0.4rem;
+          min-width: 0;
+        }
+
+        @media (max-width: 860px) {
+          .site-nav { padding: 0.85rem 1.25rem; }
+          .nav-links { display: none; }
+          .nav-burger { display: flex; }
+          .nav-user-pill .nav-user-email { display: none; }
+          .nav-auth-area .btn-primary { padding: 0.6rem 1.1rem !important; font-size: 0.78rem !important; }
+        }
+        @media (max-width: 480px) {
+          .nav-auth-area .btn-primary span.btn-label-full { display: none; }
+        }
+
+        /* ══════════ HERO — responsive ══════════ */
+        .hero-row {
+          max-width: 1280px; margin: 0 auto; padding: 0 2.5rem;
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 3rem; width: 100%; flex-wrap: wrap;
+          animation: heroPop 1s ease-out both;
+        }
+        .hero-left { max-width: 620px; flex: 1 1 380px; }
+        .hero-right { flex: 0 0 auto; position: relative; margin: 0 auto; }
+        .hero-card-inner {
+          width: min(340px, 78vw); height: min(340px, 78vw);
+          border-radius: 2rem;
+          background: rgba(255,255,255,0.06);
+          border: 1.5px solid rgba(255,255,255,0.15);
+          backdrop-filter: blur(20px);
+          display: flex; align-items: center; justify-content: center;
+          position: relative; overflow: hidden;
+        }
+        @media (max-width: 860px) {
+          .hero-row { padding: 0 1.25rem; justify-content: center; text-align: center; }
+          .hero-left { text-align: center; }
+          .hero-left p { margin-left: auto; margin-right: auto; }
+          .hero-left > div[style*="display: flex"] { justify-content: center; }
+        }
+
+        /* ══════════ Reusable responsive 2-col grid ══════════ */
+        .two-col-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2rem;
+        }
+        @media (max-width: 820px) {
+          .two-col-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+        }
       `}</style>
 
       <div style={{ background: "#0D1B4B", minHeight: "100vh", color: "#fff", fontFamily: "'Inter', sans-serif" }}>
 
         {/* ══════════════════════════════
-            NAV  — auth-aware
+            NAV  — auth-aware, responsive
         ══════════════════════════════ */}
-        <nav style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "1rem 2.5rem",
-          background: "rgba(13,27,75,0.75)",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)"
-        }}>
+        <nav className="site-nav">
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <div style={{
               width: 38, height: 38, borderRadius: "50%",
@@ -339,52 +433,66 @@ export default function Home() {
             <span style={{ fontWeight: 800, fontSize: "1.15rem", letterSpacing: "0.05em" }}>QAZMURA</span>
           </div>
 
-          {/* Desktop nav links — always visible */}
-          <div style={{ display: "flex", gap: "2rem", fontSize: "0.9rem", opacity: 0.8 }}>
+          {/* Desktop nav links — hidden on mobile via CSS */}
+          <div className="nav-links">
             <a href="#about" style={{ color: "#fff", textDecoration: "none" }}>Туралы</a>
             <a href="#learn" style={{ color: "#fff", textDecoration: "none" }}>Оқу</a>
             <a href="#culture" style={{ color: "#fff", textDecoration: "none" }}>Мәдениет</a>
             <a href="#pricing" style={{ color: "#fff", textDecoration: "none" }}>Тариф</a>
           </div>
 
-          {/* Right side: auth-aware */}
-          {loading ? (
-            <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #F5C842", borderTopColor: "transparent", animation: "rotateSlow 0.8s linear infinite" }} />
-          ) : isLoggedIn ? (
-            /* User is logged in — show user info pill */
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <Link href="/learn" style={{ textDecoration: "none" }}>
+          {/* Right side: auth-aware + burger */}
+          <div className="nav-auth-area">
+            {loading ? (
+              <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #F5C842", borderTopColor: "transparent", animation: "rotateSlow 0.8s linear infinite" }} />
+            ) : isLoggedIn ? (
+              <>
+                <Link href="/learn" style={{ textDecoration: "none" }}>
+                  <button className="btn-primary" style={{ padding: "0.65rem 1.5rem", fontSize: "0.85rem" }}>
+                    📚 <span className="btn-label-full">Оқуды жалғастыру</span>
+                  </button>
+                </Link>
+                <div className="nav-user-pill">
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: "linear-gradient(135deg,#F5C842,#E8A000)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontWeight: 900, fontSize: "0.75rem", color: "#0D1B4B", flexShrink: 0,
+                  }}>
+                    {user?.email?.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="nav-user-email" style={{ fontSize: "0.78rem", opacity: 0.85, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {user?.email}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <Link href="/register">
                 <button className="btn-primary" style={{ padding: "0.65rem 1.5rem", fontSize: "0.85rem" }}>
-                  📚 Оқуды жалғастыру
+                  Тіркелу
                 </button>
               </Link>
-              <div style={{
-                display: "flex", alignItems: "center", gap: "0.5rem",
-                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
-                borderRadius: "999px", padding: "0.4rem 1rem 0.4rem 0.4rem",
-              }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: "50%",
-                  background: "linear-gradient(135deg,#F5C842,#E8A000)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontWeight: 900, fontSize: "0.75rem", color: "#0D1B4B",
-                }}>
-                  {user?.email?.charAt(0).toUpperCase()}
-                </div>
-                <span style={{ fontSize: "0.78rem", opacity: 0.85, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {user?.email}
-                </span>
-              </div>
-            </div>
-          ) : (
-            /* Not logged in — show register button */
-            <Link href="/register">
-              <button className="btn-primary" style={{ padding: "0.65rem 1.5rem", fontSize: "0.85rem" }}>
-                Тіркелу
-              </button>
-            </Link>
-          )}
+            )}
+
+            <button
+              className="nav-burger"
+              aria-label="Мәзір"
+              onClick={() => setMenuOpen((m) => !m)}
+            >
+              {menuOpen ? "✕" : "☰"}
+            </button>
+          </div>
         </nav>
+
+        {/* Mobile dropdown menu */}
+        {menuOpen && (
+          <div className="nav-mobile-menu">
+            <a href="#about" onClick={() => setMenuOpen(false)}>Туралы</a>
+            <a href="#learn" onClick={() => setMenuOpen(false)}>Оқу</a>
+            <a href="#culture" onClick={() => setMenuOpen(false)}>Мәдениет</a>
+            <a href="#pricing" onClick={() => setMenuOpen(false)}>Тариф</a>
+          </div>
+        )}
 
         {/* ══════════════════════════════
             HERO  — auth-aware CTAs
@@ -451,20 +559,15 @@ export default function Home() {
             </svg>
           </div>
 
-          <div style={{
-            maxWidth: 1280, margin: "0 auto", padding: "0 2.5rem",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            gap: "3rem", width: "100%",
-            animation: "heroPop 1s ease-out both",
-          }}>
+          <div className="hero-row">
             {/* Left text */}
-            <div style={{ maxWidth: 620, flex: "1 1 auto" }}>
+            <div className="hero-left">
               <div className="gold-badge" style={{ marginBottom: "1.5rem" }}>
                 🇰🇿 Қазақстанның №1 тіл платформасы
               </div>
 
               <h1 style={{
-                fontSize: "clamp(2.8rem, 7vw, 5.5rem)",
+                fontSize: "clamp(2.4rem, 7vw, 5.5rem)",
                 fontWeight: 900,
                 lineHeight: 1.08,
                 letterSpacing: "-0.02em",
@@ -490,6 +593,7 @@ export default function Home() {
               <div style={{
                 display: "flex", gap: "2.5rem", marginTop: "2rem",
                 fontSize: "0.85rem", color: "rgba(255,255,255,0.55)",
+                flexWrap: "wrap", justifyContent: "center",
               }}>
                 {[["12 000+","оқушы"],["42","сабақ"],["3","тіл тірек"]].map(([n, l]) => (
                   <div key={l}>
@@ -500,7 +604,7 @@ export default function Home() {
               </div>
 
               {/* ── Auth-aware CTA buttons ── */}
-              <div style={{ display: "flex", gap: "1rem", marginTop: "2.5rem", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "1rem", marginTop: "2.5rem", flexWrap: "wrap", justifyContent: "center" }}>
                 {isLoggedIn ? (
                   /* Logged-in: go to learn + AI */
                   <>
@@ -526,7 +630,7 @@ export default function Home() {
 
               {/* Social proof — only for guests */}
               {!isLoggedIn && (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", marginTop: "2rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", marginTop: "2rem", justifyContent: "center", flexWrap: "wrap" }}>
                   <div style={{ display: "flex" }}>
                     {["#F5A623","#4A90E2","#7ED321","#9B59B6","#E74C3C"].map((c, i) => (
                       <div key={i} style={{
@@ -550,7 +654,7 @@ export default function Home() {
                   background: "rgba(245,200,66,0.1)",
                   border: "1px solid rgba(245,200,66,0.3)",
                   borderRadius: "1rem", padding: "0.75rem 1.25rem",
-                  fontSize: "0.88rem",
+                  fontSize: "0.88rem", justifyContent: "center", flexWrap: "wrap",
                 }}>
                   <span style={{ fontSize: "1.2rem" }}>👋</span>
                   <span style={{ opacity: 0.9 }}>
@@ -561,25 +665,14 @@ export default function Home() {
             </div>
 
             {/* Right: logo card */}
-            <div style={{ flex: "0 0 auto", position: "relative" }}>
+            <div className="hero-right">
               <div style={{
                 position: "absolute", inset: -20,
                 borderRadius: "50%",
                 border: "1.5px dashed rgba(245,200,66,0.3)",
                 animation: "rotateSlow 30s linear infinite",
               }}/>
-              <div
-                className="hero-image-float"
-                style={{
-                  width: 340, height: 340,
-                  borderRadius: "2rem",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1.5px solid rgba(255,255,255,0.15)",
-                  backdropFilter: "blur(20px)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  position: "relative", overflow: "hidden",
-                }}
-              >
+              <div className="hero-image-float hero-card-inner">
                 {["top-left","top-right","bottom-left","bottom-right"].map((pos) => (
                   <div key={pos} style={{
                     position: "absolute",
@@ -624,7 +717,7 @@ export default function Home() {
         {/* ══════════════════════════════
             FEATURES STRIP
         ══════════════════════════════ */}
-        <section style={{ background: "rgba(255,255,255,0.04)", borderTop: "1px solid rgba(255,255,255,0.08)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "2.5rem 2.5rem" }}>
+        <section style={{ background: "rgba(255,255,255,0.04)", borderTop: "1px solid rgba(255,255,255,0.08)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "2.5rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem" }}>
             {[
               { icon: "📘", title: "Толық бағдарлама", desc: "Әліпби → C1 деңгейіне дейін" },
@@ -648,7 +741,7 @@ export default function Home() {
         {/* ══════════════════════════════
             STATS
         ══════════════════════════════ */}
-        <section style={{ padding: "6rem 2.5rem" }}>
+        <section style={{ padding: "6rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "4rem" }}>
@@ -658,7 +751,7 @@ export default function Home() {
                 </h2>
               </div>
             </Reveal>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1.5rem" }}>
               {[
                 { n: 12000, suf: "+", label: "Белсенді оқушы", icon: "👤" },
                 { n: 42, suf: "", label: "Сабақ модулі", icon: "📚" },
@@ -666,12 +759,12 @@ export default function Home() {
                 { n: 3, suf: " тіл", label: "Оқыту тілі", icon: "🌐" },
               ].map((s, i) => (
                 <Reveal key={i} delay={i * 120}>
-                  <div className="glass-card" style={{ padding: "2.5rem 2rem", textAlign: "center" }}>
+                  <div className="glass-card" style={{ padding: "2.5rem 1.25rem", textAlign: "center" }}>
                     <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>{s.icon}</div>
-                    <div style={{ fontSize: "3rem", fontWeight: 900, color: "#F5C842", lineHeight: 1 }}>
+                    <div style={{ fontSize: "2.4rem", fontWeight: 900, color: "#F5C842", lineHeight: 1 }}>
                       <Counter target={s.n} suffix={s.suf} />
                     </div>
-                    <div style={{ marginTop: "0.6rem", opacity: 0.65, fontSize: "0.9rem" }}>{s.label}</div>
+                    <div style={{ marginTop: "0.6rem", opacity: 0.65, fontSize: "0.85rem" }}>{s.label}</div>
                   </div>
                 </Reveal>
               ))}
@@ -682,7 +775,7 @@ export default function Home() {
         {/* ══════════════════════════════
             ABOUT
         ══════════════════════════════ */}
-        <section id="about" style={{ background: "#fff", padding: "7rem 2.5rem", color: "#0D1B4B" }}>
+        <section id="about" style={{ background: "#fff", padding: "5rem 1.25rem", color: "#0D1B4B" }}>
           <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
             <Reveal>
               <div className="gold-badge" style={{ marginBottom: "1.2rem", background: "linear-gradient(135deg,#0D1B4B,#1A2F7A)", color: "#F5C842" }}>
@@ -691,7 +784,7 @@ export default function Home() {
               <h2 style={{ fontSize: "clamp(2rem, 5vw, 3.8rem)", fontWeight: 900, marginBottom: "2rem", lineHeight: 1.1 }}>
                 QAZMURA туралы
               </h2>
-              <p style={{ fontSize: "1.2rem", lineHeight: 1.9, color: "#334155", maxWidth: 720, margin: "0 auto" }}>
+              <p style={{ fontSize: "1.1rem", lineHeight: 1.9, color: "#334155", maxWidth: 720, margin: "0 auto" }}>
                 <strong>QAZMURA</strong> — «мұра» сөзінен туған. Мұра — ата-бабадан қалған
                 байлық: тіл, дәстүр және мәдениет. Платформа қазақ, орыс және ағылшын
                 тілдерінде — интерактивті, жеке, AI-қуатты.
@@ -719,7 +812,7 @@ export default function Home() {
         {/* ══════════════════════════════
             LEARNING MODULES
         ══════════════════════════════ */}
-        <section id="learn" style={{ padding: "7rem 2.5rem" }}>
+        <section id="learn" style={{ padding: "5rem 1.25rem" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "4rem" }}>
@@ -730,7 +823,7 @@ export default function Home() {
               </div>
             </Reveal>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.5rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
               {[
                 { emoji: "🔤", title: "Әліпби & Фонетика", desc: "42 әріп, дыбыс, айту ережелері. Бейне + тест.", level: "Бастауыш", color: "#4ADE80", href: "/learn/alphabet" },
                 { emoji: "✍️", title: "Толық Грамматика", desc: "Септік, жіктік, етіс — AI түсіндіреді.", level: "A1 → C1", color: "#60A5FA", href: "/learn/grammar" },
@@ -771,7 +864,7 @@ export default function Home() {
         {/* ══════════════════════════════
             CULTURE
         ══════════════════════════════ */}
-        <section id="culture" style={{ background: "#fff", padding: "7rem 2.5rem", color: "#0D1B4B" }}>
+        <section id="culture" style={{ background: "#fff", padding: "5rem 1.25rem", color: "#0D1B4B" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "4rem" }}>
@@ -784,7 +877,7 @@ export default function Home() {
               </div>
             </Reveal>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem" }}>
               {[
                 { emoji: "📖", title: "Қазақ Ертегілері", desc: "Интерактивті сюжетте сіз — кейіпкер. Оқы, таңда, үйрен.", bg: "linear-gradient(135deg,#667EEA,#764BA2)", href: "/stories" },
                 { emoji: "⚔️", title: "Батырлар Тарихы", desc: "Абылай, Бауыржан, Қабанбай. Тарих тіл арқылы.", bg: "linear-gradient(135deg,#F093FB,#F5576C)", href: "/heroes" },
@@ -826,9 +919,9 @@ export default function Home() {
         {/* ══════════════════════════════
             AI TEACHER
         ══════════════════════════════ */}
-        <section style={{ padding: "7rem 2.5rem" }}>
+        <section style={{ padding: "5rem 1.25rem" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4rem", alignItems: "center" }}>
+            <div className="two-col-grid" style={{ alignItems: "center" }}>
               <Reveal>
                 <div>
                   <div className="gold-badge" style={{ marginBottom: "1.2rem" }}>AI технология</div>
@@ -864,7 +957,7 @@ export default function Home() {
 
               {/* Chat mockup */}
               <Reveal delay={200}>
-                <div className="glass-card" style={{ padding: "1.5rem", maxWidth: 420 }}>
+                <div className="glass-card" style={{ padding: "1.5rem", maxWidth: 420, margin: "0 auto" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
                     <div style={{
                       width: 40, height: 40, borderRadius: "50%",
@@ -927,7 +1020,7 @@ export default function Home() {
         {/* ══════════════════════════════
             TESTIMONIALS
         ══════════════════════════════ */}
-        <section style={{ background: "#fff", padding: "7rem 2.5rem", color: "#0D1B4B" }}>
+        <section style={{ background: "#fff", padding: "5rem 1.25rem", color: "#0D1B4B" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "4rem" }}>
@@ -939,7 +1032,7 @@ export default function Home() {
                 </h2>
               </div>
             </Reveal>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.5rem" }}>
               {[
                 { name: "Айгерім С.", city: "Алматы", rating: 5, text: "2 айда базалық деңгейге жеттім. AI мұғалім таңғаларлық — әр сұрақты түсіндіреді!", avatar: "#E74C3C" },
                 { name: "Дмитрий П.", city: "Астана", rating: 5, text: "Орыс тілді болсам да, интерфейс өте анық. Ертегі модулі балама ұнады.", avatar: "#3498DB" },
@@ -979,7 +1072,7 @@ export default function Home() {
         {/* ══════════════════════════════
             PRICING  — auth-aware
         ══════════════════════════════ */}
-        <section id="pricing" style={{ padding: "7rem 2.5rem" }}>
+        <section id="pricing" style={{ padding: "5rem 1.25rem" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "4rem" }}>
@@ -990,7 +1083,7 @@ export default function Home() {
               </div>
             </Reveal>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", alignItems: "start" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.5rem", alignItems: "start" }}>
               {/* FREE */}
               <Reveal delay={0}>
                 <div className="glass-card" style={{ padding: "2.5rem" }}>
@@ -1065,7 +1158,7 @@ export default function Home() {
         {/* ══════════════════════════════
             TEACHER PANEL
         ══════════════════════════════ */}
-        <section style={{ background: "#fff", padding: "7rem 2.5rem", color: "#0D1B4B" }}>
+        <section style={{ background: "#fff", padding: "5rem 1.25rem", color: "#0D1B4B" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <Reveal>
               <div style={{ textAlign: "center", marginBottom: "4rem" }}>
@@ -1078,7 +1171,7 @@ export default function Home() {
               </div>
             </Reveal>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+            <div className="two-col-grid">
               {[
                 {
                   icon: "👨‍🏫",
@@ -1120,7 +1213,7 @@ export default function Home() {
         {/* ══════════════════════════════
             CTA BANNER  — auth-aware
         ══════════════════════════════ */}
-        <section style={{ padding: "6rem 2.5rem", position: "relative", overflow: "hidden" }}>
+        <section style={{ padding: "5rem 1.25rem", position: "relative", overflow: "hidden" }}>
           <div style={{
             position: "absolute", inset: 0,
             background: "radial-gradient(ellipse at center, rgba(245,200,66,0.08) 0%, transparent 70%)",
@@ -1179,7 +1272,7 @@ export default function Home() {
         <footer style={{
           background: "rgba(0,0,0,0.4)",
           borderTop: "1px solid rgba(255,255,255,0.08)",
-          padding: "3rem 2.5rem",
+          padding: "3rem 1.25rem",
         }}>
           <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1.5rem" }}>
             <div>
