@@ -105,16 +105,13 @@ function useOutsideClick(ref: React.RefObject<HTMLElement | null>, handler: () =
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-      {/* Emblem */}
       <div className="relative w-9 h-9">
         <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#b8912a] shadow-lg shadow-amber-400/30 transition-all duration-300 group-hover:shadow-amber-400/50 group-hover:scale-105" />
         <span className="absolute inset-0 flex items-center justify-center font-black text-[#002B49] text-lg leading-none select-none">
           Q
         </span>
-        {/* Shine */}
         <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-transparent to-white/20 pointer-events-none" />
       </div>
-      {/* Wordmark */}
       <span className="text-xl font-black tracking-widest text-[#002B49] font-serif hidden sm:block transition-opacity duration-200 group-hover:opacity-80">
         QAZMURA
       </span>
@@ -157,12 +154,10 @@ function DropdownMenu({ section, isActive, pathname }: DropdownMenuProps) {
         />
       </button>
 
-      {/* Active underline */}
       {isActive && (
         <span className="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-[#D4AF37]" />
       )}
 
-      {/* Dropdown panel */}
       <div
         className={`
           absolute left-0 top-full pt-3 w-56 z-50
@@ -171,7 +166,6 @@ function DropdownMenu({ section, isActive, pathname }: DropdownMenuProps) {
         `}
       >
         <div className="relative bg-white/90 backdrop-blur-xl border border-slate-100 shadow-2xl shadow-slate-200/60 rounded-2xl p-2 flex flex-col gap-0.5">
-          {/* Gold accent bar */}
           <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent" />
 
           {section.items.map((item) => {
@@ -229,7 +223,6 @@ function UserDropdown({ email, onSignOut }: UserDropdownProps) {
         aria-expanded={open}
         className="flex items-center gap-2.5 group outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] rounded-xl p-1"
       >
-        {/* Avatar */}
         <div className="relative w-8 h-8 rounded-xl bg-gradient-to-br from-[#002B49] to-[#004680] flex items-center justify-center shadow-md">
           <span className="text-sm font-black text-[#D4AF37]">{initial}</span>
           <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
@@ -295,13 +288,11 @@ interface MobileDrawerProps {
 function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawerProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
-  // Lock body scroll when drawer open
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  // Auto-expand active section
   useEffect(() => {
     if (!open) return;
     for (const section of NAV_SECTIONS) {
@@ -316,14 +307,12 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
 
   return (
     <>
-      {/* Overlay */}
       <div
         onClick={onClose}
         className={`fixed inset-0 z-40 bg-[#002B49]/50 backdrop-blur-sm transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
         aria-hidden="true"
       />
 
-      {/* Drawer panel */}
       <aside
         className={`
           fixed top-0 left-0 bottom-0 z-50 w-[85vw] max-w-sm
@@ -333,7 +322,6 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
         `}
         aria-label="Мобильді навигация"
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <Logo />
           <button
@@ -345,10 +333,7 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
           </button>
         </div>
 
-        {/* Scrollable content */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
-
-          {/* Home */}
           <Link
             href="/"
             onClick={onClose}
@@ -358,7 +343,6 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
             Басты бет
           </Link>
 
-          {/* Sections with accordion */}
           {NAV_SECTIONS.map((section) => {
             const isExpanded = expandedSection === section.id;
             const isActiveSection = section.matchPaths.some((p) => pathname.startsWith(p));
@@ -380,7 +364,6 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
                   <ChevronDown className={`w-4 h-4 opacity-50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                 </button>
 
-                {/* Accordion items */}
                 <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
                   <div className="pl-4 py-1 flex flex-col gap-0.5">
                     {section.items.map((item) => {
@@ -411,7 +394,6 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
             );
           })}
 
-          {/* AI Мұғалім */}
           <Link
             href="/ai"
             onClick={onClose}
@@ -421,7 +403,6 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
             AI Мұғалім
           </Link>
 
-          {/* Тарифтер */}
           <Link
             href="/pricing"
             onClick={onClose}
@@ -432,9 +413,10 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
           </Link>
         </nav>
 
-        {/* Footer: Auth section */}
+        {/* Footer: Auth section — auth-aware */}
         <div className="border-t border-slate-100 p-4">
           {user ? (
+            /* Logged in */
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3 px-3 py-2 bg-slate-50 rounded-xl">
                 <div className="w-8 h-8 rounded-lg bg-[#002B49] flex items-center justify-center shrink-0">
@@ -459,6 +441,7 @@ function MobileDrawer({ open, onClose, pathname, user, onSignOut }: MobileDrawer
               </div>
             </div>
           ) : (
+            /* Not logged in */
             <div className="grid grid-cols-2 gap-2">
               <Link href="/login" onClick={onClose}
                 className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-[#002B49]/20 text-[#002B49] text-xs font-bold rounded-xl hover:bg-slate-50 transition-colors">
@@ -487,14 +470,12 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Scroll shadow
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
-  // Close mobile drawer on route change
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   const handleSignOut = useCallback(async () => {
@@ -527,7 +508,6 @@ export default function Navbar() {
             {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-1 flex-1">
 
-              {/* Басты бет */}
               <Link
                 href="/"
                 className={`
@@ -543,7 +523,6 @@ export default function Navbar() {
                 )}
               </Link>
 
-              {/* Dropdowns */}
               {NAV_SECTIONS.map((section) => {
                 const isActive = section.matchPaths.some((p) => pathname.startsWith(p));
                 return (
@@ -551,7 +530,6 @@ export default function Navbar() {
                 );
               })}
 
-              {/* AI Мұғалім */}
               <Link
                 href="/ai"
                 className={`
@@ -568,7 +546,6 @@ export default function Navbar() {
                 )}
               </Link>
 
-              {/* Тарифтер */}
               <Link
                 href="/pricing"
                 className={`
@@ -585,16 +562,19 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Desktop User Area */}
+            {/* Desktop User Area — auth-aware */}
             <div className="hidden md:flex items-center gap-3 ml-auto">
               {loading ? (
+                /* Loading spinner */
                 <div className="w-6 h-6 border-2 border-[#002B49] border-t-transparent rounded-full animate-spin" />
               ) : user ? (
+                /* Logged in — show user dropdown, NO register button */
                 <UserDropdown
                   email={user.email ?? ""}
                   onSignOut={handleSignOut}
                 />
               ) : (
+                /* Not logged in — show login + register */
                 <div className="flex items-center gap-2">
                   <Link href="/login">
                     <button className="flex items-center gap-1.5 text-[#002B49] border border-[#002B49]/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]">

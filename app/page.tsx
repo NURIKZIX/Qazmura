@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import useAuth from "@/hooks/useAuth";
 
 /* ─── Kazakh alphabet letters for the hero animation ─── */
 const KZ_LETTERS = ["Ә","Ғ","Қ","Ң","Ө","Ұ","Ү","Һ","І","А","Б","В","Г","Д","Е","Ж","З","И","К","Л","М","Н","О","П","Р","С","Т","У","Ф","Х","Ц","Ч","Ш","Ы","Э","Ю","Я"];
@@ -138,6 +139,9 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
    MAIN PAGE
 ═══════════════════════════════════════════════════════ */
 export default function Home() {
+  const { user, loading } = useAuth();
+  const isLoggedIn = !loading && !!user;
+
   return (
     <>
       {/* ── Global keyframes ── */}
@@ -315,7 +319,7 @@ export default function Home() {
       <div style={{ background: "#0D1B4B", minHeight: "100vh", color: "#fff", fontFamily: "'Inter', sans-serif" }}>
 
         {/* ══════════════════════════════
-            NAV
+            NAV  — auth-aware
         ══════════════════════════════ */}
         <nav style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
@@ -334,21 +338,56 @@ export default function Home() {
             }}>Q</div>
             <span style={{ fontWeight: 800, fontSize: "1.15rem", letterSpacing: "0.05em" }}>QAZMURA</span>
           </div>
+
+          {/* Desktop nav links — always visible */}
           <div style={{ display: "flex", gap: "2rem", fontSize: "0.9rem", opacity: 0.8 }}>
             <a href="#about" style={{ color: "#fff", textDecoration: "none" }}>Туралы</a>
             <a href="#learn" style={{ color: "#fff", textDecoration: "none" }}>Оқу</a>
             <a href="#culture" style={{ color: "#fff", textDecoration: "none" }}>Мәдениет</a>
             <a href="#pricing" style={{ color: "#fff", textDecoration: "none" }}>Тариф</a>
           </div>
-          <Link href="/register">
-            <button className="btn-primary" style={{ padding: "0.65rem 1.5rem", fontSize: "0.85rem" }}>
-              Тіркелу
-            </button>
-          </Link>
+
+          {/* Right side: auth-aware */}
+          {loading ? (
+            <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #F5C842", borderTopColor: "transparent", animation: "rotateSlow 0.8s linear infinite" }} />
+          ) : isLoggedIn ? (
+            /* User is logged in — show user info pill */
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <Link href="/learn" style={{ textDecoration: "none" }}>
+                <button className="btn-primary" style={{ padding: "0.65rem 1.5rem", fontSize: "0.85rem" }}>
+                  📚 Оқуды жалғастыру
+                </button>
+              </Link>
+              <div style={{
+                display: "flex", alignItems: "center", gap: "0.5rem",
+                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: "999px", padding: "0.4rem 1rem 0.4rem 0.4rem",
+              }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%",
+                  background: "linear-gradient(135deg,#F5C842,#E8A000)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 900, fontSize: "0.75rem", color: "#0D1B4B",
+                }}>
+                  {user?.email?.charAt(0).toUpperCase()}
+                </div>
+                <span style={{ fontSize: "0.78rem", opacity: 0.85, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {user?.email}
+                </span>
+              </div>
+            </div>
+          ) : (
+            /* Not logged in — show register button */
+            <Link href="/register">
+              <button className="btn-primary" style={{ padding: "0.65rem 1.5rem", fontSize: "0.85rem" }}>
+                Тіркелу
+              </button>
+            </Link>
+          )}
         </nav>
 
         {/* ══════════════════════════════
-            HERO
+            HERO  — auth-aware CTAs
         ══════════════════════════════ */}
         <section style={{
           position: "relative",
@@ -372,10 +411,9 @@ export default function Home() {
             animation: "floatOrb 10s 2s ease-in-out infinite",
           }} />
 
-          {/* Stars */}
           <StarField />
 
-          {/* Kazakh letter rain (ambient) */}
+          {/* Kazakh letter rain */}
           <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", opacity: 0.04 }}>
             {Array.from({ length: 20 }, (_, i) => (
               <span key={i} style={{
@@ -392,7 +430,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Rotating Kazakh ornament ring */}
+          {/* Rotating ornament ring */}
           <div style={{
             position: "absolute", right: "4%", top: "50%",
             transform: "translateY(-50%)",
@@ -461,30 +499,65 @@ export default function Home() {
                 ))}
               </div>
 
+              {/* ── Auth-aware CTA buttons ── */}
               <div style={{ display: "flex", gap: "1rem", marginTop: "2.5rem", flexWrap: "wrap" }}>
-                <Link href="/register">
-                  <button className="btn-primary">🚀 Үйренуді бастау</button>
-                </Link>
-                <Link href="/ai">
-                  <button className="btn-ghost">🤖 AI Мұғалім</button>
-                </Link>
+                {isLoggedIn ? (
+                  /* Logged-in: go to learn + AI */
+                  <>
+                    <Link href="/learn">
+                      <button className="btn-primary">📚 Оқуды жалғастыру</button>
+                    </Link>
+                    <Link href="/ai">
+                      <button className="btn-ghost">🤖 AI Мұғалім</button>
+                    </Link>
+                  </>
+                ) : (
+                  /* Not logged in: register + AI */
+                  <>
+                    <Link href="/register">
+                      <button className="btn-primary">🚀 Үйренуді бастау</button>
+                    </Link>
+                    <Link href="/ai">
+                      <button className="btn-ghost">🤖 AI Мұғалім</button>
+                    </Link>
+                  </>
+                )}
               </div>
 
-              {/* Social proof */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", marginTop: "2rem" }}>
-                <div style={{ display: "flex" }}>
-                  {["#F5A623","#4A90E2","#7ED321","#9B59B6","#E74C3C"].map((c, i) => (
-                    <div key={i} style={{
-                      width: 32, height: 32, borderRadius: "50%",
-                      background: c, border: "2px solid #0D1B4B",
-                      marginLeft: i ? "-8px" : 0,
-                    }} />
-                  ))}
+              {/* Social proof — only for guests */}
+              {!isLoggedIn && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", marginTop: "2rem" }}>
+                  <div style={{ display: "flex" }}>
+                    {["#F5A623","#4A90E2","#7ED321","#9B59B6","#E74C3C"].map((c, i) => (
+                      <div key={i} style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: c, border: "2px solid #0D1B4B",
+                        marginLeft: i ? "-8px" : 0,
+                      }} />
+                    ))}
+                  </div>
+                  <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.6)" }}>
+                    <strong style={{ color: "#fff" }}>1 200+</strong> оқушы осы аптада қосылды
+                  </span>
                 </div>
-                <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.6)" }}>
-                  <strong style={{ color: "#fff" }}>1 200+</strong> оқушы осы аптада қосылды
-                </span>
-              </div>
+              )}
+
+              {/* Logged-in welcome message */}
+              {isLoggedIn && (
+                <div style={{
+                  marginTop: "2rem",
+                  display: "flex", alignItems: "center", gap: "0.75rem",
+                  background: "rgba(245,200,66,0.1)",
+                  border: "1px solid rgba(245,200,66,0.3)",
+                  borderRadius: "1rem", padding: "0.75rem 1.25rem",
+                  fontSize: "0.88rem",
+                }}>
+                  <span style={{ fontSize: "1.2rem" }}>👋</span>
+                  <span style={{ opacity: 0.9 }}>
+                    Қош келдіңіз, <strong style={{ color: "#F5C842" }}>{user?.email?.split("@")[0]}</strong>! Оқуды жалғастырыңыз.
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Right: logo card */}
@@ -507,7 +580,6 @@ export default function Home() {
                   position: "relative", overflow: "hidden",
                 }}
               >
-                {/* Decorative corner ornaments */}
                 {["top-left","top-right","bottom-left","bottom-right"].map((pos) => (
                   <div key={pos} style={{
                     position: "absolute",
@@ -625,7 +697,6 @@ export default function Home() {
                 тілдерінде — интерактивті, жеке, AI-қуатты.
               </p>
 
-              {/* 3-column values */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginTop: "3.5rem" }}>
                 {[
                   { icon: "🌿", title: "Тамыр", body: "Қазақ рухынан бастау алады." },
@@ -661,34 +732,36 @@ export default function Home() {
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.5rem" }}>
               {[
-                { emoji: "🔤", title: "Әліпби & Фонетика", desc: "42 әріп, дыбыс, айту ережелері. Бейне + тест.", level: "Бастауыш", color: "#4ADE80" },
-                { emoji: "✍️", title: "Толық Грамматика", desc: "Септік, жіктік, етіс — AI түсіндіреді.", level: "A1 → C1", color: "#60A5FA" },
-                { emoji: "📖", title: "Сөздік Қор", desc: "Флэшкарта, контекст, ойындар арқылы.", level: "5 000+ сөз", color: "#F472B6" },
-                { emoji: "📝", title: "Оқылым & Жазылым", desc: "Мәтін, диктант, шығарма тексеруші.", level: "A2 → C1", color: "#FB923C" },
+                { emoji: "🔤", title: "Әліпби & Фонетика", desc: "42 әріп, дыбыс, айту ережелері. Бейне + тест.", level: "Бастауыш", color: "#4ADE80", href: "/learn/alphabet" },
+                { emoji: "✍️", title: "Толық Грамматика", desc: "Септік, жіктік, етіс — AI түсіндіреді.", level: "A1 → C1", color: "#60A5FA", href: "/learn/grammar" },
+                { emoji: "📖", title: "Сөздік Қор", desc: "Флэшкарта, контекст, ойындар арқылы.", level: "5 000+ сөз", color: "#F472B6", href: "/learn/vocabulary" },
+                { emoji: "📝", title: "Оқылым & Жазылым", desc: "Мәтін, диктант, шығарма тексеруші.", level: "A2 → C1", color: "#FB923C", href: "/learn/reading" },
               ].map((m, i) => (
                 <Reveal key={i} delay={i * 100}>
-                  <div className="glass-card" style={{ padding: "2rem", cursor: "pointer" }}>
-                    <div style={{
-                      width: 56, height: 56, borderRadius: "1rem",
-                      background: `${m.color}20`, border: `1.5px solid ${m.color}50`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "1.8rem", marginBottom: "1.2rem",
-                    }}>{m.emoji}</div>
-                    <span style={{
-                      display: "inline-block", background: `${m.color}25`,
-                      color: m.color, fontSize: "0.72rem", fontWeight: 700,
-                      padding: "0.25rem 0.75rem", borderRadius: 999,
-                      marginBottom: "0.8rem", letterSpacing: "0.05em",
-                    }}>{m.level}</span>
-                    <h3 style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.6rem" }}>{m.title}</h3>
-                    <p style={{ fontSize: "0.88rem", opacity: 0.65, lineHeight: 1.6 }}>{m.desc}</p>
-                    <div style={{
-                      marginTop: "1.5rem", display: "flex", alignItems: "center",
-                      gap: "0.4rem", color: m.color, fontWeight: 700, fontSize: "0.85rem",
-                    }}>
-                      Бастау <span>→</span>
+                  <Link href={isLoggedIn ? m.href : "/register"} style={{ textDecoration: "none" }}>
+                    <div className="glass-card" style={{ padding: "2rem", cursor: "pointer" }}>
+                      <div style={{
+                        width: 56, height: 56, borderRadius: "1rem",
+                        background: `${m.color}20`, border: `1.5px solid ${m.color}50`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "1.8rem", marginBottom: "1.2rem",
+                      }}>{m.emoji}</div>
+                      <span style={{
+                        display: "inline-block", background: `${m.color}25`,
+                        color: m.color, fontSize: "0.72rem", fontWeight: 700,
+                        padding: "0.25rem 0.75rem", borderRadius: 999,
+                        marginBottom: "0.8rem", letterSpacing: "0.05em",
+                      }}>{m.level}</span>
+                      <h3 style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.6rem", color: "#fff" }}>{m.title}</h3>
+                      <p style={{ fontSize: "0.88rem", opacity: 0.65, lineHeight: 1.6, color: "#fff" }}>{m.desc}</p>
+                      <div style={{
+                        marginTop: "1.5rem", display: "flex", alignItems: "center",
+                        gap: "0.4rem", color: m.color, fontWeight: 700, fontSize: "0.85rem",
+                      }}>
+                        {isLoggedIn ? "Жалғастыру" : "Бастау"} <span>→</span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </Reveal>
               ))}
             </div>
@@ -713,35 +786,37 @@ export default function Home() {
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
               {[
-                { emoji: "📖", title: "Қазақ Ертегілері", desc: "Интерактивті сюжетте сіз — кейіпкер. Оқы, таңда, үйрен.", bg: "linear-gradient(135deg,#667EEA,#764BA2)" },
-                { emoji: "⚔️", title: "Батырлар Тарихы", desc: "Абылай, Бауыржан, Қабанбай. Тарих тіл арқылы.", bg: "linear-gradient(135deg,#F093FB,#F5576C)" },
-                { emoji: "🎉", title: "Салт-Дәстүрлер", desc: "Наурыз, той, ас. 3D карта + мультимедиа.", bg: "linear-gradient(135deg,#4FACFE,#00F2FE)" },
-                { emoji: "🗺️", title: "Қазақстан Картасы", desc: "Интерактивті карта: аймақ, тіл, мәдениет.", bg: "linear-gradient(135deg,#43E97B,#38F9D7)" },
+                { emoji: "📖", title: "Қазақ Ертегілері", desc: "Интерактивті сюжетте сіз — кейіпкер. Оқы, таңда, үйрен.", bg: "linear-gradient(135deg,#667EEA,#764BA2)", href: "/stories" },
+                { emoji: "⚔️", title: "Батырлар Тарихы", desc: "Абылай, Бауыржан, Қабанбай. Тарих тіл арқылы.", bg: "linear-gradient(135deg,#F093FB,#F5576C)", href: "/heroes" },
+                { emoji: "🎉", title: "Салт-Дәстүрлер", desc: "Наурыз, той, ас. 3D карта + мультимедиа.", bg: "linear-gradient(135deg,#4FACFE,#00F2FE)", href: "/traditions" },
+                { emoji: "🗺️", title: "Қазақстан Картасы", desc: "Интерактивті карта: аймақ, тіл, мәдениет.", bg: "linear-gradient(135deg,#43E97B,#38F9D7)", href: "/map" },
               ].map((c, i) => (
                 <Reveal key={i} delay={i * 100}>
-                  <div style={{
-                    borderRadius: "1.5rem", overflow: "hidden",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-                    transition: "transform 0.3s, box-shadow 0.3s",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-8px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 24px 60px rgba(0,0,0,0.2)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 32px rgba(0,0,0,0.12)"; }}
-                  >
-                    <div style={{ background: c.bg, padding: "2.5rem 2rem", color: "#fff" }}>
-                      <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>{c.emoji}</div>
-                      <h3 style={{ fontWeight: 800, fontSize: "1.2rem", marginBottom: "0.6rem" }}>{c.title}</h3>
-                      <p style={{ fontSize: "0.88rem", opacity: 0.88, lineHeight: 1.6 }}>{c.desc}</p>
-                    </div>
+                  <Link href={isLoggedIn ? c.href : "/register"} style={{ textDecoration: "none" }}>
                     <div style={{
-                      background: "#fff", padding: "1rem 2rem",
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                      fontSize: "0.85rem", fontWeight: 700, color: "#0D1B4B",
-                    }}>
-                      <span>Зерттеу</span>
-                      <span>→</span>
+                      borderRadius: "1.5rem", overflow: "hidden",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                      transition: "transform 0.3s, box-shadow 0.3s",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-8px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 24px 60px rgba(0,0,0,0.2)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 32px rgba(0,0,0,0.12)"; }}
+                    >
+                      <div style={{ background: c.bg, padding: "2.5rem 2rem", color: "#fff" }}>
+                        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>{c.emoji}</div>
+                        <h3 style={{ fontWeight: 800, fontSize: "1.2rem", marginBottom: "0.6rem" }}>{c.title}</h3>
+                        <p style={{ fontSize: "0.88rem", opacity: 0.88, lineHeight: 1.6 }}>{c.desc}</p>
+                      </div>
+                      <div style={{
+                        background: "#fff", padding: "1rem 2rem",
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        fontSize: "0.85rem", fontWeight: 700, color: "#0D1B4B",
+                      }}>
+                        <span>{isLoggedIn ? "Ашу" : "Зерттеу"}</span>
+                        <span>→</span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </Reveal>
               ))}
             </div>
@@ -902,7 +977,7 @@ export default function Home() {
         </section>
 
         {/* ══════════════════════════════
-            PRICING
+            PRICING  — auth-aware
         ══════════════════════════════ */}
         <section id="pricing" style={{ padding: "7rem 2.5rem" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -927,9 +1002,15 @@ export default function Home() {
                       <div key={f} style={{ fontSize: "0.9rem", display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>{f}</div>
                     ))}
                   </div>
-                  <Link href="/register">
-                    <button className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>Бастау</button>
-                  </Link>
+                  {isLoggedIn ? (
+                    <Link href="/learn">
+                      <button className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>Жалғастыру</button>
+                    </Link>
+                  ) : (
+                    <Link href="/register">
+                      <button className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>Бастау</button>
+                    </Link>
+                  )}
                 </div>
               </Reveal>
 
@@ -951,7 +1032,11 @@ export default function Home() {
                       <div key={f} style={{ fontSize: "0.9rem", display: "flex", gap: "0.5rem" }}>{f}</div>
                     ))}
                   </div>
-                  <button className="btn-primary" style={{ width: "100%" }}>Жазылу</button>
+                  <Link href={isLoggedIn ? "/pricing" : "/register"}>
+                    <button className="btn-primary" style={{ width: "100%" }}>
+                      {isLoggedIn ? "Жазылу" : "Жазылу"}
+                    </button>
+                  </Link>
                 </div>
               </Reveal>
 
@@ -966,8 +1051,10 @@ export default function Home() {
                       <div key={f} style={{ fontSize: "0.9rem", display: "flex", gap: "0.5rem" }}>{f}</div>
                     ))}
                   </div>
-                  <Link href="/register">
-                    <button className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>Бастау</button>
+                  <Link href={isLoggedIn ? "/pricing" : "/register"}>
+                    <button className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>
+                      {isLoggedIn ? "Жаңарту" : "Бастау"}
+                    </button>
                   </Link>
                 </div>
               </Reveal>
@@ -1031,7 +1118,7 @@ export default function Home() {
         </section>
 
         {/* ══════════════════════════════
-            CTA BANNER
+            CTA BANNER  — auth-aware
         ══════════════════════════════ */}
         <section style={{ padding: "6rem 2.5rem", position: "relative", overflow: "hidden" }}>
           <div style={{
@@ -1040,19 +1127,48 @@ export default function Home() {
           }} />
           <Reveal>
             <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
-              <h2 style={{ fontSize: "clamp(2rem, 6vw, 4rem)", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem" }}>
-                Қазақ тілін бүгін<br/>
-                <span style={{ color: "#F5C842" }}>бастаңыз</span>
-              </h2>
-              <p style={{ opacity: 0.7, fontSize: "1.1rem", marginBottom: "2.5rem", lineHeight: 1.7 }}>
-                Тегін тіркеліп, алғашқы сабағыңызды бүгін өтіңіз.
-                AI мұғалім сізді күтіп тұр.
-              </p>
-              <Link href="/register">
-                <button className="btn-primary" style={{ fontSize: "1.1rem", padding: "1.2rem 3rem" }}>
-                  🚀 Тегін бастау — 0 ₸
-                </button>
-              </Link>
+              {isLoggedIn ? (
+                /* Logged-in CTA */
+                <>
+                  <h2 style={{ fontSize: "clamp(2rem, 6vw, 4rem)", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem" }}>
+                    Оқуды бүгін<br/>
+                    <span style={{ color: "#F5C842" }}>жалғастырыңыз</span>
+                  </h2>
+                  <p style={{ opacity: 0.7, fontSize: "1.1rem", marginBottom: "2.5rem", lineHeight: 1.7 }}>
+                    AI мұғалімімен сөйлесіңіз, жаңа сабақтарды ашыңыз.<br/>
+                    Мақсатыңызға бір қадам жақынырақ болыңыз.
+                  </p>
+                  <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+                    <Link href="/learn">
+                      <button className="btn-primary" style={{ fontSize: "1.1rem", padding: "1.2rem 3rem" }}>
+                        📚 Сабақтарға өту
+                      </button>
+                    </Link>
+                    <Link href="/ai">
+                      <button className="btn-ghost" style={{ fontSize: "1.1rem", padding: "1.2rem 3rem" }}>
+                        🤖 AI Мұғалім
+                      </button>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                /* Guest CTA */
+                <>
+                  <h2 style={{ fontSize: "clamp(2rem, 6vw, 4rem)", fontWeight: 900, lineHeight: 1.1, marginBottom: "1.5rem" }}>
+                    Қазақ тілін бүгін<br/>
+                    <span style={{ color: "#F5C842" }}>бастаңыз</span>
+                  </h2>
+                  <p style={{ opacity: 0.7, fontSize: "1.1rem", marginBottom: "2.5rem", lineHeight: 1.7 }}>
+                    Тегін тіркеліп, алғашқы сабағыңызды бүгін өтіңіз.
+                    AI мұғалім сізді күтіп тұр.
+                  </p>
+                  <Link href="/register">
+                    <button className="btn-primary" style={{ fontSize: "1.1rem", padding: "1.2rem 3rem" }}>
+                      🚀 Тегін бастау — 0 ₸
+                    </button>
+                  </Link>
+                </>
+              )}
             </div>
           </Reveal>
         </section>
