@@ -1,265 +1,194 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
+import { heroesData, Hero } from "@/app/data/heroesData";
+import HeroCard from "@/components/HeroCard";
+import HeroDetails from "@/components/HeroDetails";
+import HeroQuiz from "@/components/HeroQuiz";
+import HeroAchievements from "@/components/HeroAchievements";
+import HeroProgress from "@/components/HeroProgress";
+import { Shield, Award, Zap } from "lucide-react";
 
-export default function Heroes() {
+export default function HeroesPage() {
+  const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "details" | "quiz">("list");
+  const [xp, setXp] = useState<number>(0);
+  const [completedHeroes, setCompletedHeroes] = useState<string[]>([]);
+  const [readHeroes, setReadHeroes] = useState<string[]>([]);
 
-  const heroes = [
+  // LocalStorage арқылы Firestore симуляциясы
+  useEffect(() => {
+    const savedXp = localStorage.getItem("qazmura_xp");
+    const savedCompleted = localStorage.getItem("qazmura_completed");
+    const savedRead = localStorage.getItem("qazmura_read");
 
-    {
-      name: "Қобыланды батыр",
-      text: "Қобыланды батыр — қазақ эпосындағы ең әйгілі батырлардың бірі. Ол ноғайлы дәуірінде өмір сүрген. Елін жаудан қорғаған.",
-      tests: [
-        { question: "Қай дәуір?", options: ["Ноғайлы", "Кеңес", "Қазіргі"], answer: "Ноғайлы" },
-        { question: "Тұлпары?", options: ["Тайбурыл", "Ақбоз", "Көкбөрі"], answer: "Тайбурыл" },
-        { question: "Не үшін күресті?", options: ["Ел", "Ақша", "Даңқ"], answer: "Ел" },
-        { question: "Қасиеті?", options: ["Батырлық", "Жалқау", "Қорқақ"], answer: "Батырлық" },
-        { question: "Жыр түрі?", options: ["Эпос", "Комедия", "Драма"], answer: "Эпос" },
-      ],
-    },
+    if (savedXp) setXp(parseInt(savedXp, 10));
+    if (savedCompleted) setCompletedHeroes(JSON.parse(savedCompleted));
+    if (savedRead) setReadHeroes(JSON.parse(savedRead));
+  }, []);
 
-    {
-      name: "Алпамыс батыр",
-      text: "Алпамыс батыр — қазақ эпосының қаһарманы. Батыл әрі әділ.",
-      tests: [
-        { question: "Жары кім?", options: ["Гүлбаршын", "Айгүл", "Жанар"], answer: "Гүлбаршын" },
-        { question: "Қасиеті?", options: ["Әділ", "Қорқақ", "Әлсіз"], answer: "Әділ" },
-        { question: "Не істеген?", options: ["Ел қорғаған", "Сауда", "Ұйықтаған"], answer: "Ел қорғаған" },
-        { question: "Жанр?", options: ["Эпос", "Фильм", "Ән"], answer: "Эпос" },
-        { question: "Қандай?", options: ["Батыл", "Жалқау", "Қорқақ"], answer: "Батыл" },
-      ],
-    },
-
-    {
-      name: "Ер Тарғын",
-      text: "Ер Тарғын — ерлігімен танылған батыр.",
-      tests: [
-        { question: "Қасиеті?", options: ["Ерлік", "Байлық", "Ұйқы"], answer: "Ерлік" },
-        { question: "Не туралы жыр?", options: ["Ерлік", "Ас", "Ақша"], answer: "Ерлік" },
-        { question: "Кім?", options: ["Батыр", "Ақын", "Саудагер"], answer: "Батыр" },
-        { question: "Тақырыбы?", options: ["Махаббат", "Ұйқы", "Ақша"], answer: "Махаббат" },
-        { question: "Қандай адам?", options: ["Батыл", "Қорқақ", "Әлсіз"], answer: "Батыл" },
-      ],
-    },
-
-    {
-      name: "Қамбар батыр",
-      text: "Қамбар батыр — халық қорғаушысы.",
-      tests: [
-        { question: "Не үшін күресті?", options: ["Әділдік", "Ақша", "Билік"], answer: "Әділдік" },
-        { question: "Кім?", options: ["Батыр", "Ақын", "Патша"], answer: "Батыр" },
-        { question: "Қасиеті?", options: ["Әділ", "Жалқау", "Қорқақ"], answer: "Әділ" },
-        { question: "Қайда?", options: ["Халық арасында", "Қалада", "Тауда"], answer: "Халық арасында" },
-        { question: "Мақсаты?", options: ["Қорғау", "Бай болу", "Ұйықтау"], answer: "Қорғау" },
-      ],
-    },
-
-    {
-      name: "Бөгенбай батыр",
-      text: "Бөгенбай — Абылай ханның қолбасшысы.",
-      tests: [
-        { question: "Кімнің қолбасшысы?", options: ["Абылай", "Кенесары", "Тәуке"], answer: "Абылай" },
-        { question: "Кім?", options: ["Батыр", "Ақын", "Дәрігер"], answer: "Батыр" },
-        { question: "Не істеді?", options: ["Соғыс", "Сауда", "Ұйқы"], answer: "Соғыс" },
-        { question: "Қасиеті?", options: ["Ерлік", "Қорқақ", "Жалқау"], answer: "Ерлік" },
-        { question: "Қайда күресті?", options: ["Жоңғар", "Қытай", "Англия"], answer: "Жоңғар" },
-      ],
-    },
-
-    {
-      name: "Қабанбай батыр",
-      text: "Қабанбай — жоңғарларға қарсы күрескен.",
-      tests: [
-        { question: "Кімге қарсы?", options: ["Жоңғар", "Орыс", "Қытай"], answer: "Жоңғар" },
-        { question: "Кім?", options: ["Батыр", "Ақын", "Биші"], answer: "Батыр" },
-        { question: "Қасиеті?", options: ["Ерлік", "Қорқақ", "Ұйқы"], answer: "Ерлік" },
-        { question: "Не істеді?", options: ["Соғыс", "Сауда", "Ұйқы"], answer: "Соғыс" },
-        { question: "Қайда?", options: ["Дала", "Қала", "Теңіз"], answer: "Дала" },
-      ],
-    },
-
-    {
-      name: "Наурызбай батыр",
-      text: "Наурызбай — Абылай ханның серігі.",
-      tests: [
-        { question: "Кімнің серігі?", options: ["Абылай", "Исатай", "Махамбет"], answer: "Абылай" },
-        { question: "Кім?", options: ["Батыр", "Ақын", "Саудагер"], answer: "Батыр" },
-        { question: "Қасиеті?", options: ["Батыл", "Қорқақ", "Жалқау"], answer: "Батыл" },
-        { question: "Не істеді?", options: ["Соғыс", "Ұйқы", "Сауда"], answer: "Соғыс" },
-        { question: "Мақсаты?", options: ["Ел қорғау", "Ақша", "Ұйқы"], answer: "Ел қорғау" },
-      ],
-    },
-
-    {
-      name: "Исатай батыр",
-      text: "Исатай — көтеріліс басшысы.",
-      tests: [
-        { question: "Кім?", options: ["Көтеріліс басшысы", "Ақын", "Патша"], answer: "Көтеріліс басшысы" },
-        { question: "Не істеді?", options: ["Көтеріліс", "Сауда", "Ұйқы"], answer: "Көтеріліс" },
-        { question: "Қасиеті?", options: ["Ерлік", "Қорқақ", "Жалқау"], answer: "Ерлік" },
-        { question: "Мақсаты?", options: ["Халық", "Ақша", "Ұйқы"], answer: "Халық" },
-        { question: "Кіммен бірге?", options: ["Махамбет", "Абылай", "Кенесары"], answer: "Махамбет" },
-      ],
-    },
-
-    {
-      name: "Махамбет батыр",
-      text: "Махамбет — ақын әрі батыр.",
-      tests: [
-        { question: "Кім?", options: ["Ақын", "Патша", "Саудагер"], answer: "Ақын" },
-        { question: "Тағы кім?", options: ["Батыр", "Дәрігер", "Биші"], answer: "Батыр" },
-        { question: "Кіммен?", options: ["Исатай", "Абылай", "Тәуке"], answer: "Исатай" },
-        { question: "Қасиеті?", options: ["Ерлік", "Қорқақ", "Ұйқы"], answer: "Ерлік" },
-        { question: "Не істеді?", options: ["Күрес", "Сауда", "Ұйқы"], answer: "Күрес" },
-      ],
-    },
-
-    {
-      name: "Райымбек батыр",
-      text: "Райымбек — Жетісуды қорғаған батыр.",
-      tests: [
-        { question: "Қай жерді қорғады?", options: ["Жетісу", "Алтай", "Сібір"], answer: "Жетісу" },
-        { question: "Кім?", options: ["Батыр", "Ақын", "Патша"], answer: "Батыр" },
-        { question: "Қасиеті?", options: ["Ерлік", "Қорқақ", "Жалқау"], answer: "Ерлік" },
-        { question: "Не істеді?", options: ["Қорғау", "Сауда", "Ұйқы"], answer: "Қорғау" },
-        { question: "Қайда?", options: ["Жетісу", "Қала", "Теңіз"], answer: "Жетісу" },
-      ],
-    },
-
-  ];
-
-  const [selectedHero, setSelectedHero] = useState<number | null>(null);
-  const [step, setStep] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [result, setResult] = useState("");
-  const [xp, setXp] = useState(0);
-
-  const check = () => {
-    const hero = heroes[selectedHero!];
-    const current = hero.tests[step];
-
-    if (selectedAnswer === current.answer) {
-      setResult("Дұрыс ✅");
-      setXp(xp + 10);
-    } else {
-      setResult("Қате ❌");
-    }
+  const updateFirestoreSim = (newXp: number, completedList: string[], readList: string[]) => {
+    setXp(newXp);
+    setCompletedHeroes(completedList);
+    setReadHeroes(readList);
+    localStorage.setItem("qazmura_xp", newXp.toString());
+    localStorage.setItem("qazmura_completed", JSON.stringify(completedList));
+    localStorage.setItem("qazmura_read", JSON.stringify(readList));
   };
 
-  const next = () => {
-    const hero = heroes[selectedHero!];
-
-    if (step < hero.tests.length - 1) {
-      setStep(step + 1);
-      setSelectedAnswer("");
-      setResult("");
-    } else {
-      setResult("🎉 Бітті!");
+  const handleReadComplete = (heroId: string) => {
+    if (!readHeroes.includes(heroId)) {
+      const newRead = [...readHeroes, heroId];
+      const newXp = xp + 20; // Мақаланы толық оқығаны үшін +20 XP
+      updateFirestoreSim(newXp, completedHeroes, newRead);
+      triggerFloatingXpEffect();
     }
+    setViewMode("quiz");
   };
+
+  const handleQuizComplete = (heroId: string, correctCount: number) => {
+    let earnedXp = correctCount * 10; // Әр дұрыс жауапқа +10 XP
+    const newCompleted = [...completedHeroes];
+    
+    if (!completedHeroes.includes(heroId)) {
+      newCompleted.push(heroId);
+      earnedXp += 50; // Бөлімді (тестті) толық аяқтағанда +50 XPBonus
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+    }
+
+    const totalXp = xp + earnedXp;
+    updateFirestoreSim(totalXp, newCompleted, readHeroes);
+    setViewMode("list");
+    setSelectedHeroId(null);
+  };
+
+  const triggerFloatingXpEffect = () => {
+    confetti({ particleCount: 40, angle: 60, spread: 55, origin: { x: 0 } });
+    confetti({ particleCount: 40, angle: 120, spread: 55, origin: { x: 1 } });
+  };
+
+  const currentHero = heroesData.find((h) => h.id === selectedHeroId);
 
   return (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-
-    <div className="bg-white p-10 rounded-3xl shadow-2xl w-[600px]">
-
-      <h1 className="text-3xl font-bold text-blue-900 text-center">
-        Батырлар
-      </h1>
-
-      {selectedHero === null ? (
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          {heroes.map((h, i) => (
-            <div
-              key={i}
-              onClick={() => {
-                setSelectedHero(i);
-                setStep(0);
-                setResult("");
-              }}
-              className="p-4 bg-gray-50 rounded-xl shadow cursor-pointer hover:bg-blue-100 transition text-center font-semibold"
-            >
-              {h.name}
+    <div className="min-h-screen bg-[#fcf8f2] text-black antialiased selection:bg-amber-200">
+      {/* 🏛️ PREMIUM HEADER */}
+      <header className="sticky top-0 z-50 bg-[#002B49] border-b-4 border-[#D4AF37] px-6 py-4 shadow-xl">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#D4AF37] p-2 rounded-xl shadow-md">
+              <Shield className="w-8 h-8 text-[#002B49]" />
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="mt-6">
-
-          <button
-            onClick={() => setSelectedHero(null)}
-            className="text-sm text-gray-500 hover:text-blue-600"
-          >
-            ← Артқа
-          </button>
-
-          <h2 className="text-2xl font-bold mt-4 text-blue-900">
-            {heroes[selectedHero].name}
-          </h2>
-
-          <p className="mt-3 text-gray-600 leading-relaxed">
-            {heroes[selectedHero].text}
-          </p>
-
-          {/* 🧠 ТЕСТ */}
-          <div className="mt-6">
-
-            <p className="font-semibold text-lg">
-              {heroes[selectedHero].tests[step].question}
-            </p>
-
-            <div className="mt-4 space-y-3">
-              {heroes[selectedHero].tests[step].options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedAnswer(opt)}
-                  className={`w-full p-3 rounded-xl border transition ${
-                    selectedAnswer === opt
-                      ? "bg-blue-900 text-white"
-                      : "bg-gray-50 hover:bg-blue-100"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-3 mt-6">
-
-              <button
-                onClick={check}
-                className="bg-blue-900 text-white px-6 py-2 rounded-xl hover:bg-blue-800"
-              >
-                Тексеру
-              </button>
-
-              <button
-                onClick={next}
-                className="px-6 py-2 rounded-xl border hover:bg-gray-100"
-              >
-                Келесі →
-              </button>
-
-            </div>
-
-            {result && (
-              <p className="mt-4 font-semibold">
-                {result}
+            <div>
+              <h1 className="text-2xl font-black tracking-wider text-[#D4AF37] uppercase font-serif">
+                QAZMURA <span className="text-white">| Батырлар</span>
+              </h1>
+              <p className="text-xs text-white uppercase tracking-widest font-semibold">
+                Premium Education Platform
               </p>
-            )}
-
-            <div className="mt-4">
-              <span className="bg-blue-100 text-blue-900 px-4 py-2 rounded-full text-sm font-semibold">
-                XP: {xp}
-              </span>
             </div>
-
           </div>
 
+          {/* 🌟 STATS BAR */}
+          <div className="flex items-center gap-6">
+            <HeroProgress completedCount={completedHeroes.length} totalCount={heroesData.length} />
+            
+            <motion.div 
+              className="bg-amber-50 border-2 border-[#D4AF37] px-4 py-2 rounded-2xl flex items-center gap-2 shadow-inner"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Zap className="w-6 h-6 text-amber-500 fill-amber-500 animate-pulse" />
+              <span className="text-xl font-black text-slate-900">{xp} <span className="text-sm font-bold text-slate-900">XP</span></span>
+            </motion.div>
+          </div>
         </div>
-      )}
+      </header>
 
+      {/* 🌍 MAIN CONTENT CONTAINER */}
+      <main className="max-w-7xl mx-auto px-4 py-10">
+        <AnimatePresence mode="wait">
+          {viewMode === "list" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-12"
+            >
+              {/* 🎯 HERO JUMBOTRON */}
+              <div className="bg-gradient-to-r from-[#002B49] to-[#004B75] rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl border-b-8 border-[#D4AF37]">
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div className="relative z-10 max-w-3xl">
+                  <span className="bg-[#D4AF37] text-black text-xs font-black uppercase px-3 py-1 rounded-full shadow">
+                    Ұлы Дала Мұрасы
+                  </span>
+                  <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white mt-4 font-serif">
+                    Тарихты Тұлғалар Арқылы Таны
+                  </h2>
+                  <p className="mt-4 text-base text-white/90 font-medium leading-relaxed">
+                    Қазақ халқының бостандығы мен тұтастығын қорғаған 12 ұлы батырдың өмір жолы, 
+                    ерліктері мен тарихты өзгерткен шешімдері. Мақалаларды оқыңыз, біліміңізді тексеріп, XP жинаңыз!
+                  </p>
+                </div>
+              </div>
+
+              {/* 🏅 ACHIEVEMENTS PANEL */}
+              <HeroAchievements completedCount={completedHeroes.length} />
+
+              {/* 🎴 GRID LIST OF HEROES */}
+              <div>
+                <h3 className="text-3xl font-black text-slate-900 mb-6 font-serif border-l-8 border-[#002B49] pl-4">
+                  Батырлар Шежіресі
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {heroesData.map((hero) => (
+                    <HeroCard
+                      key={hero.id}
+                      hero={hero}
+                      isCompleted={completedHeroes.includes(hero.id)}
+                      onSelect={() => {
+                        setSelectedHeroId(hero.id);
+                        setViewMode("details");
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {viewMode === "details" && currentHero && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <HeroDetails
+                hero={currentHero}
+                onBack={() => {
+                  setViewMode("list");
+                  setSelectedHeroId(null);
+                }}
+                onStartQuiz={() => handleReadComplete(currentHero.id)}
+              />
+            </motion.div>
+          )}
+
+          {viewMode === "quiz" && currentHero && (
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+            >
+              <HeroQuiz
+                hero={currentHero}
+                onFinish={(correctCount) => handleQuizComplete(currentHero.id, correctCount)}
+                onCancel={() => setViewMode("details")}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
     </div>
-  </div>
-);
+  );
 }

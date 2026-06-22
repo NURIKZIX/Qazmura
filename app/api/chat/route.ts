@@ -1,8 +1,28 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    let incomingMessages = body.messages || [];
+    
+    if (body.message && incomingMessages.length === 0) {
+      incomingMessages = [{ role: "user", content: body.message }];
+    }
+
+    // QAZMURA платформасының жүйелік нұсқаулығы
+    const systemInstruction = {
+      role: "system",
+      content: `Сен QAZMURA платформасының AI қазақ тілі мұғалімі және кәсіби ертегішісісің.
+Міндеттерің:
+1. Пайдаланушы қазақ тілін үйрену үшін сұрақ қойса, қарапайым әрі түсінікті етіп түсіндір.
+2. Егер пайдаланушы грамматикалық қате жіберсе (мысалы: "Мен мектеп бардым"), оны міндетті түрде түзетіп ("Мен мектепке бардым"), ережесін түсіндір.
+3. Пайдаланушы "ертегі жаз" десе, тәрбиелік мәні бар қызықты ертегі құрастыр. Ең бірінші жолға тек ертегі атауын жаз.
+4. Пайдаланушы "тест жаса" десе, тақырыпқа сай 10 сұрақтық интерактивті тест құрастыр.
+5. Қазақ мәдениетін, салт-дәстүрін және батырлар жырын насихатта.
+Барлық жауапты Markdown форматында, таза және әдемі құрылымда тек қазақ тілінде қайтар.`,
+    };
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -12,84 +32,29 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        messages: [
-          {
-            role: "system",
-            content: `
-Сен — қазақ тілін және Қазақстан мәдениетін үйрететін кәсіби AI мұғалімсің.
-
-СЕНІҢ МАҚСАТЫҢ:
-Қолданушыға түсінікті, нақты және пайдалы жауап беру.
-Қиын нәрсені қарапайым тілмен түсіндіру.
-
-СТИЛЬ:
-- Әдепті, сабырлы, түсіндіруші
-- Қысқа, бірақ мәнді
-- Артық сөзсіз
-- Қажет болса мысал келтір
-
-РЕЖИМДЕР:
-
-1) Егер қолданушы ертегі сұраса:
-- 120–150 сөз
-- Басы / Ортасы / Соңы / Қорытынды
-- Қазақ мәдениеті болсын
-- Балаларға түсінікті
-
-2) Егер тест сұраса:
-- 3 сұрақ
-- A B C вариант
-- Соңында дұрыс жауаптар
-
-3) Егер оқу сұраса (грамматика, сөз, түсіндіру):
-- Қарапайым тілмен түсіндір
-- Мысал келтір
-- Қадаммен түсіндір
-
-4) Егер жай сұрақ болса:
-- Қысқа, нақты жауап бер
-
-ҚАТАҢ ЕРЕЖЕ:
-- Қолданушы сұрамаған нәрсені қоспа
-- Ертегі сұрамаса — ертегі жазба
-- Тест сұрамаса — тест жазба
-- Әр жауап пайдалы болсын
-
-ҚОСЫМША:
-- Қолданушы қазақша жазса — қазақша жауап бер
-- Қате жазса — жұмсақ түрде түзет
-`,
-          },
-          {
-            role: "user",
-            content: message,
-          },
-        ],
+        messages: [systemInstruction, ...incomingMessages],
         temperature: 0.7,
-        max_tokens: 800,
+        max_tokens: 1500,
+        stream: true,
       }),
     });
 
-    const data = await res.json();
-
-    console.log("GROQ:", data);
-
-    // 🔥 ЗАЩИТА
-    if (!data.choices) {
-      return NextResponse.json({
-        error: "AI жауап бермеді",
-      });
+    if (!res.ok) {
+      const errorData = await res.text();
+      console.error("Groq API Error:", errorData);
+      return NextResponse.json({ error: "Groq API-ден қате келді" }, { status: res.status });
     }
 
-    return NextResponse.json({
-      reply: data.choices[0].message.content,
+    return new NextResponse(res.body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
     });
 
   } catch (error) {
-    console.error(error);
-
-    return NextResponse.json({
-      error: "Server error",
-    });
+    console.error("Server Error:", error);
+    return NextResponse.json({ error: "Ішкі серверлік қате" }, { status: 500 });
   }
 }

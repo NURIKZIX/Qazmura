@@ -1,15 +1,27 @@
 @import "tailwindcss";
 
 :root {
+  /* Жеңіл (Light) тақырып дефолт бойынша - бірақ біз чатты ChatGPT сияқты жайлы етеміз */
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* QAZMURA Chat арнайы түстері */
+  --chat-sidebar: #202123;
+  --chat-main: #343541;
+  --chat-input: #40414F;
+  --chat-assistant-bg: #444654;
+  --brand-gold: #D4AF37;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-chat-sidebar: var(--chat-sidebar);
+  --color-chat-main: var(--chat-main);
+  --color-chat-input: var(--chat-input);
+  --color-chat-assistant: var(--chat-assistant-bg);
+  --color-brand-gold: var(--brand-gold);
+  --font-sans: Arial, Helvetica, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +35,39 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* --- Чатқа арналған арнайы көмекші стильдер (Скроллбар) --- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Маркдаун форматтауының мәтіндері әдемі көрінуі үшін (Prose фикстері) */
+.prose strong {
+  color: var(--brand-gold) !important; /* Ережелер мен маңызды сөздер алтын түспен ерекшеленеді */
+  font-weight: 700;
+}
+
+.prose p {
+  margin-bottom: 0.75rem;
+}
+
+.prose ul, .prose ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+  list-style-type: discrete;
 }

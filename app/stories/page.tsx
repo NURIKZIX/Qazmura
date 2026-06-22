@@ -1,229 +1,184 @@
+// src/app/stories/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import StoryGenerator from "./StoryGenerator";
+import StoryCard from "./StoryCard";
+import { saveStoryToFirestore, updateUserXP } from "./firebase";
 
-export default function Stories() {
-  useEffect(() => {
-  speechSynthesis.getVoices();
-}, []);
-  const [mode, setMode] = useState("classic");
-
-  const [type, setType] = useState("батыр");
-  const [character, setCharacter] = useState("батыр");
-  const [place, setPlace] = useState("ауыл");
-  const [goal, setGoal] = useState("жеңу");
-
-  const [story, setStory] = useState("");
+export default function StoriesPage() {
+  const [storyContent, setStoryContent] = useState("");
+  const [storyTitle, setStoryTitle] = useState("");
+  const [currentMode, setCurrentMode] = useState<"classic" | "interactive">("classic");
+  const [currentType, setCurrentType] = useState("");
   const [loading, setLoading] = useState(false);
-const speak = () => {
-  if (!story) return;
+  const [actionLoading, setActionLoading] = useState(false);
+  const [userXp, setUserXp] = useState(100); // Мысал үшін жергілікті мемлекет, Firestore-дан тартылады
+  
+  // ChatGPT стиліндегі диалог тарихын сақтау (Интерактив үшін)
+  const [storyHistory, setStoryHistory] = useState<{ role: string; content: string }[]>([]);
 
-  // 🔥 ВСЕГДА очищаем старый звук
-  speechSynthesis.cancel();
-
-  const utter = new SpeechSynthesisUtterance(story);
-
-  utter.lang = "kk-KZ";
-  utter.rate = 0.9;
-  utter.pitch = 1;
-
-  speechSynthesis.speak(utter);
-};
-  const generateStory = async () => {
+  const handleGenerateStory = async (prompt: string, mode: "classic" | "interactive", selectedType: string) => {
     setLoading(true);
-    setStory("");
+    setCurrentMode(mode);
+    setCurrentType(selectedType);
+    
+    try {
+      const initialHistory = [{ role: "user", content: prompt }];
+      
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: initialHistory }),
+      });
+      const data = await res.json();
 
-    let prompt = "";
-
-    if (mode === "classic") {
-      const map: any = {
-        батыр: "Қазақ батыр туралы қызықты ертегі жаз",
-        балалар: "Балаларға арналған ертегі жаз",
-        комедия: "Күлкілі ертегі жаз",
-      };
-
-      prompt = map[type];
-    } else {
-      prompt = `
-Кейіпкер: ${character}
-Оқиға орны: ${place}
-Мақсат: ${goal}
-
-Осы параметрлер бойынша қазақ тілінде қызықты ертегі жаз.
-      `;
+      if (data.reply) {
+        // Тақырыпты бірінші жолдан бөліп алу талпынысы
+        const lines = data.reply.split("\n");
+        const detectedTitle = lines[0].replace(/[#*]/g, "").trim();
+        
+        setStoryTitle(detectedTitle.length < 50 ? detectedTitle : "Сиқырлы Ертегі");
+        setStoryContent(data.reply);
+        setStoryHistory([
+          ...initialHistory,
+          { role: "assistant", content: data.reply }
+        ]);
+        
+        // Ертегі сәтті жасалғаны үшін +10 XP
+        handleXpReward(10);
+      }
+    } catch (error) {
+      console.error("Жүйелік қате:", error);
+      setStoryContent("⚠️ Ертегіні жасау кезінде техникалық қате орын алды.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      body: JSON.stringify({ message: prompt }),
-    });
+  const handleActionChoice = async (choiceText: string) => {
+    setActionLoading(true);
+    const updatedHistory = [
+      ...storyHistory,
+      { role: "user", content: `Кейіпкер келесі кезекте мына қадамды жасайды: "${choiceText}". Осы таңдау бойынша ертегі желісін әрі қарай қызықты етіп жалғастырып жаз.` }
+    ];
 
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: updatedHistory }),
+      });
+      const data = await res.json();
 
-if (data.error) {
-  setStory("⚠️ Қате: AI жауап бермеді");
-} else {
-  setStory(data.reply || "⚠️ Қате: ертегі шықпады");
-}
+      if (data.reply) {
+        setStoryContent((prev) => `${prev}\n\n=== ${choiceText} ===\n\n${data.reply}`);
+        setStoryHistory([
+          ...updatedHistory,
+          { role: "assistant", content: data.reply }
+        ]);
+        handleXpReward(10); // Жалғастырғаны үшін тағы +10 XP
+      }
+    } catch (error) {
+      console.error("Интерактивті жалғастыру қатесі:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
-    setLoading(false);
+  const handleSaveStory = async () => {
+    const mockUid = "user_qazmura_123"; // Жүйедегі пайдаланушы ID-і
+    const payload = {
+      uid: mockUid,
+      title: storyTitle,
+      content: storyContent,
+      type: currentType,
+      mode: currentMode,
+      favorite: false
+    };
+    const docId = await saveStoryToFirestore(payload);
+    if (docId) alert("✨ Ертегі сәтті сақталды! +10 XP қосылды.");
+  };
+
+  const handleXpReward = (amount: number) => {
+    setUserXp(prev => prev + amount);
+    // Нақты өндірісте: await updateUserXP("user_qazmura_123", amount);
+  };
+
+  const handleReset = () => {
+    setStoryContent("");
+    setStoryTitle("");
+    setStoryHistory([]);
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 overflow-x-hidden text-slate-100">
+      
+      {/* 🌌 Қазақша ұлттық өрнек пен премиум фондық эффектілер */}
+      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none bg-[url('/kazakh-pattern.jpg')] bg-repeat bg-center"></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      {/* ФОН */}
-      <img
-        src="/kazakh-bg.jpg"
-        className="absolute inset-0 w-full h-full object-cover opacity-30"
-      />
-      <div className="absolute inset-0 bg-blue-200/60"></div>
+      {/* Header Profile Info (XP Көрсеткіш) */}
+      <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2 text-sm z-10">
+        <span>⭐ {userXp} XP</span>
+      </div>
 
-      {/* КАРТОЧКА */}
-      <div className="relative bg-white/90 p-10 rounded-3xl shadow-xl w-[750px] text-center">
-
-        <h1 className="text-3xl font-bold text-blue-900">
-          Ертегілер
-        </h1>
-
-        {/* 🔥 РЕЖИМ ПЕРЕКЛЮЧЕНИЯ */}
-        <div className="flex justify-center gap-3 mt-4">
-          <button
-            onClick={() => setMode("classic")}
-            className={`px-4 py-2 rounded-xl ${
-              mode === "classic"
-                ? "bg-blue-900 text-white"
-                : "border"
-            }`}
+      <div className="w-full max-w-[800px] z-10 text-center space-y-8">
+        
+        {/* HERO БӨЛІМІ */}
+        {!storyContent && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-3"
           >
-            📖 Классика
-          </button>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500">
+              📖 AI Ертегілер Әлемі
+            </h1>
+            <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto font-light">
+              Қазақ тіліндегі ерекше ертегілерді AI көмегімен жасаңыз. Батырлар, дәстүрлер, сиқырлы әлемдер және өзіңіздің кейіпкерлеріңіз.
+            </p>
+          </motion.div>
+        )}
 
-          <button
-            onClick={() => setMode("interactive")}
-            className={`px-4 py-2 rounded-xl ${
-              mode === "interactive"
-                ? "bg-blue-900 text-white"
-                : "border"
-            }`}
-          >
-            🎮 Ертегі 2.0
-          </button>
+        {/* АНИМАЦИЯЛЫҚ АУЫСПАЛЫ БЛОК */}
+        <div className="w-full">
+          <AnimatePresence mode="wait">
+            {!storyContent ? (
+              <motion.div
+                key="generator"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <StoryGenerator onGenerate={handleGenerateStory} loading={loading} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="story-card"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <StoryCard
+                  title={storyTitle}
+                  content={storyContent}
+                  mode={currentMode}
+                  onActionChoice={handleActionChoice}
+                  actionLoading={actionLoading}
+                  onSave={handleSaveStory}
+                  onReset={handleReset}
+                  onXpReward={handleXpReward}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <p className="text-sm text-gray-500 mt-2">
-          {mode === "classic"
-            ? "Ертегі түрін таңдаңыз"
-            : "Өзіңіздің ертегіңізді құрастырыңыз"}
-        </p>
-
-        {/* 🟦 CLASSIC */}
-        {mode === "classic" && (
-          <div className="flex justify-center gap-3 mt-4">
-            {["батыр", "балалар", "комедия"].map((t) => (
-              <button
-                key={t}
-                onClick={() => setType(t)}
-                className={`px-4 py-2 rounded-xl border ${
-                  type === t
-                    ? "bg-blue-900 text-white"
-                    : ""
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* 🎮 INTERACTIVE */}
-        {mode === "interactive" && (
-          <div className="mt-4 space-y-3 text-left">
-
-            <div>
-              <p>Кейіпкер</p>
-              <select
-                onChange={(e) => setCharacter(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option>батыр</option>
-                <option>қыз</option>
-                <option>бала</option>
-              </select>
-            </div>
-
-            <div>
-              <p>Оқиға орны</p>
-              <select
-                onChange={(e) => setPlace(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option>ауыл</option>
-                <option>орман</option>
-                <option>тау</option>
-              </select>
-            </div>
-
-            <div>
-              <p>Мақсат</p>
-              <select
-                onChange={(e) => setGoal(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option>жеңу</option>
-                <option>құтқару</option>
-                <option>табу</option>
-              </select>
-            </div>
-
-          </div>
-        )}
-
-        {/* 🔥 КНОПКА */}
-        <button
-          onClick={generateStory}
-          className="mt-6 bg-blue-900 text-white px-6 py-3 rounded-xl hover:scale-105 transition"
-        >
-          ✨ Ертегі жасау
-        </button>
-
-        {loading && (
-  <p className="mt-4 text-gray-500 animate-pulse">
-    ✨ Ертегі жасалуда...
-  </p>
-)}
-
-        {story && (
-          <div className="mt-6 bg-gray-50 p-5 rounded-xl text-left max-h-[300px] overflow-y-auto">
-            <p className="whitespace-pre-line">{story}</p>
-          </div>
-        )}
-{story && (
-  <div className="mt-3 flex gap-4 justify-center">
-
-    <button
-      onClick={() => navigator.clipboard.writeText(story)}
-      className="text-sm text-gray-600"
-    >
-      📋 Көшіру
-    </button>
-
-    <button
-      onClick={generateStory}
-      className="text-sm text-blue-600"
-    >
-      🔄 Қайта жасау
-    </button>
-
-    <button
-      onClick={speak}
-      className="text-sm text-green-600"
-    >
-      🔊 Тыңдау
-    </button>
-
-  </div>
-)}
       </div>
     </div>
   );
