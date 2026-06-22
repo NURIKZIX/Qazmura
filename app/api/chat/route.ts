@@ -24,20 +24,22 @@ export async function POST(req: Request) {
 Барлық жауапты Markdown форматында, таза және әдемі құрылымда тек қазақ тілінде қайтар.`,
     };
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [systemInstruction, ...incomingMessages],
-        temperature: 0.7,
-        max_tokens: 1500,
-        stream: true,
-      }),
-    });
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    "HTTP-Referer": "https://qazmura.vercel.app", // сайтыңның домені
+    "X-Title": "QAZMURA",                 // жоба атауы
+  },
+  body: JSON.stringify({
+    model: "google/gemini-2.5-flash-lite", // OpenRouter-дегі модель атауы
+    messages: [systemInstruction, ...incomingMessages],
+    temperature: 0.7,
+    max_tokens: 1500,
+    stream: true,
+  }),
+});
 
     if (!res.ok) {
       const errorData = await res.text();
