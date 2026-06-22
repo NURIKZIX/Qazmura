@@ -26,17 +26,25 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="kk" // Тілді қазақшаға ауыстырған дұрыс
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col">
-
-  <Providers>
-    <Navbar />
-    {children}
-  </Providers>
-
-</body>
+      <head>
+        {/* Мобильді құрылғылардың экран өлшемін дұрыс ұстау үшін */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </head>
+      
+      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900 overflow-x-hidden">
+        <Providers>
+          <Navbar />
+          {/* main тегіне w-full және flex-grow қосу арқылы 
+            беттің ортасы әрқашан экранға толық сыяды 
+          */}
+          <main className="flex-grow w-full">
+            {children}
+          </main>
+        </Providers>
+      </body>
     </html>
   );
 }
