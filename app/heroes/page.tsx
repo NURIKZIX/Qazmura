@@ -74,7 +74,7 @@ export default function HeroesPage() {
   return (
     <div className="min-h-screen bg-[#fcf8f2] text-black antialiased selection:bg-amber-200">
       {/* 🏛️ PREMIUM HEADER */}
-      <header className="sticky top-0 z-50 bg-[#002B49] border-b-4 border-[#D4AF37] px-6 py-4 shadow-xl">
+      <header className="bg-[#002B49] border-b-4 border-[#D4AF37] px-6 py-4 shadow-xl">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-[#D4AF37] p-2 rounded-xl shadow-md">

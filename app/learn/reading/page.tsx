@@ -365,7 +365,7 @@ export default function Reading() {
     <div className="bg-slate-50 min-h-screen text-black font-sans pb-16">
       
       {/* HEADER & SCOREBOARD */}
-      <div className="bg-white border-b-2 border-slate-200 sticky top-0 z-40 shadow-xs">
+      <div className="bg-white border-b-2 border-slate-200 shadow-xs">
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <span className="text-3xl">📖</span>
