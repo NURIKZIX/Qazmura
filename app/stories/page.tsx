@@ -8,6 +8,7 @@ import StoryCard from "./StoryCard";
 import { saveStoryToFirestore, updateUserXP } from "./firebase";
 
 export default function StoriesPage() {
+
   const [storyContent, setStoryContent] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
   const [currentMode, setCurrentMode] = useState<"classic" | "interactive">("classic");

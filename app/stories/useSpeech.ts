@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 
 export const useSpeech = (
   text: string,
@@ -9,72 +9,14 @@ export const useSpeech = (
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [voice, setVoice] =
-    useState<SpeechSynthesisVoice | null>(null);
 
   const progressInterval =
     useRef<NodeJS.Timeout | null>(null);
 
   const rewardedRef = useRef(false);
 
-  useEffect(() => {
-    const loadVoices = () => {
-      const voices =
-        window.speechSynthesis.getVoices();
-
-      console.log(
-        "Available Voices:",
-        voices.map((v) => ({
-          name: v.name,
-          lang: v.lang,
-        }))
-      );
-
-      const kazakhVoice =
-        voices.find((v) =>
-          v.name.includes("Aigul")
-        ) ||
-        voices.find((v) =>
-          v.name.includes("Daulet")
-        ) ||
-        voices.find((v) =>
-          v.lang === "kk-KZ"
-        ) ||
-        voices.find((v) =>
-          v.lang.startsWith("kk")
-        ) ||
-        null;
-
-      if (kazakhVoice) {
-        console.log(
-          "Selected Voice:",
-          kazakhVoice.name
-        );
-
-        setVoice(kazakhVoice);
-      }
-    };
-
-    loadVoices();
-
-    if (
-      typeof window !== "undefined" &&
-      window.speechSynthesis
-    ) {
-      window.speechSynthesis.onvoiceschanged =
-        loadVoices;
-    }
-
-    return () => {
-      if (progressInterval.current) {
-        clearInterval(progressInterval.current);
-      }
-
-      if (typeof window !== "undefined") {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
+  const audioRef =
+    useRef<HTMLAudioElement | null>(null);
 
   const startProgress = () => {
     if (progressInterval.current) {
@@ -99,24 +41,10 @@ export const useSpeech = (
     }, 200);
   };
 
-  const play = () => {
+  const play = async () => {
     if (!text) return;
 
-    window.speechSynthesis.cancel();
-
-    const utter =
-      new SpeechSynthesisUtterance(text);
-
-    if (voice) {
-      utter.voice = voice;
-    }
-
-    utter.lang = "kk-KZ";
-    utter.rate = 0.95;
-    utter.pitch = 1;
-    utter.volume = 1;
-
-    utter.onstart = () => {
+    try {
       setIsPlaying(true);
       setIsPaused(false);
 
@@ -129,63 +57,71 @@ export const useSpeech = (
         onXpReward();
         rewardedRef.current = true;
       }
-    };
 
-    utter.onend = () => {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          text,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("TTS Error");
+      }
+
+      const blob = await res.blob();
+
+      const url =
+        URL.createObjectURL(blob);
+
+      const audio = new Audio(url);
+
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+        setProgress(100);
+
+        if (progressInterval.current) {
+          clearInterval(
+            progressInterval.current
+          );
+        }
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.error(error);
+
       setIsPlaying(false);
       setIsPaused(false);
-
-      setProgress(100);
-
-      if (progressInterval.current) {
-        clearInterval(
-          progressInterval.current
-        );
-      }
-    };
-
-    utter.onerror = (e) => {
-      console.error("Speech Error:", e);
-
-      setIsPlaying(false);
-      setIsPaused(false);
-
-      if (progressInterval.current) {
-        clearInterval(
-          progressInterval.current
-        );
-      }
-    };
-
-    window.speechSynthesis.speak(utter);
-  };
-
-  const pause = () => {
-    if (isPlaying && !isPaused) {
-      window.speechSynthesis.pause();
-
-      setIsPaused(true);
-
-      if (progressInterval.current) {
-        clearInterval(
-          progressInterval.current
-        );
-      }
     }
   };
 
-  const resume = () => {
-    if (isPaused) {
-      window.speechSynthesis.resume();
+  const pause = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPaused(true);
+    }
+  };
 
+  const resume = async () => {
+    if (audioRef.current) {
+      await audioRef.current.play();
       setIsPaused(false);
-
-      startProgress();
     }
   };
 
   const stop = () => {
-    window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
 
     setIsPlaying(false);
     setIsPaused(false);

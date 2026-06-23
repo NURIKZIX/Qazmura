@@ -294,16 +294,31 @@ export default function Vocabulary() {
     );
   }, [selectedCategory, searchQuery]);
 
-  // Сөзді дыбыстау жүйесі (SpeechSynthesis)
-  const speakKazakh = (text: string) => {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "kk-KZ"; // Қазақ тілі кодировкасы
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert("Бұл браузер дыбыстау функциясын қолдамайды.");
+ 
+ const speakKazakh = async (text: string) => {
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!res.ok) {
+      throw new Error("TTS Error");
     }
-  };
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+
+    await audio.play();
+  } catch (error) {
+    console.error("TTS Error:", error);
+  }
+};
 
   // Викторинаны генерациялау (Қате жауап нұсқаларын араластыру)
   const startQuiz = () => {

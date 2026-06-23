@@ -66,6 +66,38 @@ export default function Alphabet() {
   const [activeWord, setActiveWord] = useState<string | null>(null);
   const particleId = useRef(0);
   const animRef = useRef<number | null>(null);
+const speak = async (
+  text: string,
+  onEnd?: () => void
+) => {
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!res.ok) {
+      throw new Error("TTS Error");
+    }
+
+    const blob = await res.blob();
+
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+
+    if (onEnd) {
+      audio.onended = onEnd;
+    }
+
+    await audio.play();
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const spawnConfetti = (x: number, y: number, color: string) => {
     const newParticles: Particle[] = Array.from({ length: 18 }, (_, i) => ({
@@ -84,15 +116,6 @@ export default function Alphabet() {
     }, 900);
   };
 
-  const speak = (text: string, onEnd?: () => void) => {
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = "kk-KZ";
-    utt.rate = 0.75;
-    utt.pitch = 1.1;
-    if (onEnd) utt.onend = onEnd;
-    window.speechSynthesis.speak(utt);
-  };
 
   const handleCard = (item: typeof letters[0], e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();

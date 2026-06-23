@@ -254,21 +254,39 @@ export default function Reading() {
     setIsQuizFinished(false);
   }, [selectedCategory]);
 
-  // Дыбыстау функциялары (SpeechSynthesis)
-  const speakText = (text: string) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel(); // Алдыңғы дыбысты тоқтату
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "kk-KZ";
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+let currentAudio: HTMLAudioElement | null = null;
+const speakText = async (text: string) => {
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text }),
+    });
 
-  const stopSpeaking = () => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+    if (!res.ok) {
+      throw new Error("TTS Error");
     }
-  };
+
+    const blob = await res.blob();
+
+    const url = URL.createObjectURL(blob);
+
+const audio = new Audio(url);
+currentAudio = audio;
+
+await audio.play();
+  } catch (err) {
+    console.error(err);
+  }
+};
+const stopSpeaking = () => {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+};
 
   // Жауапты тексеру логикасы
   const handleCheckAnswer = () => {
