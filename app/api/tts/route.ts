@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       fileName
     );
 
-    await execFileAsync("py", [
+    await execFileAsync("python3", [
       "-m",
       "edge_tts",
       "--voice",
