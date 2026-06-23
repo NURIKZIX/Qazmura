@@ -44,12 +44,19 @@ export async function POST(req: Request) {
         "Content-Type": "audio/mpeg",
       },
     });
-  } catch (error) {
-    console.error("EDGE TTS ERROR:", error);
+  } catch (error: any) {
+  console.error("EDGE TTS ERROR FULL");
+  console.error("STDOUT:", error?.stdout);
+  console.error("STDERR:", error?.stderr);
+  console.error("ERROR:", error);
 
-    return NextResponse.json(
-      { error: "TTS Error" },
-      { status: 500 }
-    );
+  return NextResponse.json(
+    {
+      stdout: error?.stdout,
+      stderr: error?.stderr,
+      error: String(error),
+    },
+    { status: 500 }
+  );
   }
 }
